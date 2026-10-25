@@ -1,0 +1,136 @@
+[gd_scene format=3 uid="uid://buyj8i6kadexs"]
+
+[ext_resource type="Texture2D" uid="uid://cvp8i06ygwiii" path="res://assets/cards/Рубашка карт.png" id="1_maoi1"]
+[ext_resource type="AudioStream" uid="uid://cripi5ogu1vc7" path="res://assets/Звук наведения на карту.mp3" id="2_maoi1"]
+
+[sub_resource type="GDScript" id="GDScript_c8ugw"]
+resource_name = "main"
+script/source = "extends PlayableCard
+
+
+func _ready() -> void:
+	_update_sprite()
+
+
+@warning_ignore(\"unused_parameter\")
+func _process(delta: float) -> void:
+	%NominalLabel.text = \"%s\" % nominal
+	
+	if not responsive:
+		$TextureRect.scale = Vector2.ONE
+
+
+func _on_mouse_entered() -> void:
+	if responsive:
+		%HoverSound.play()
+		$TextureRect.scale = Vector2.ONE * 1.1
+
+
+func _on_mouse_exited() -> void:
+	if responsive:
+		$TextureRect.scale = Vector2.ONE
+
+
+func _on_state_changed() -> void:
+	pass
+
+
+func _on_visible_state_changed() -> void:
+	_update_sprite()
+
+
+func _add_token(new_token:RuleToken) -> void:
+	if new_token.get_parent() == null:
+		$CenterContainer.add_child(new_token)
+	else:
+		new_token.reparent($CenterContainer, false)
+
+
+func _update_sprite() -> void:
+	if visible_state == VisibleState.Hidden:
+		$TextureRect.texture = preload(\"res://assets/cards/Рубашка карт.png\")
+		%NominalLabel.hide()
+		return
+		
+	%NominalLabel.show()
+	match suit:
+		Suit.Spades:
+			$TextureRect.texture = load(\"res://assets/cards/жезлы/%d.jpg\" % nominal)
+		
+		Suit.Hearts:
+			$TextureRect.texture = load(\"res://assets/cards/чаши/%d.jpg\" % nominal)
+		
+		Suit.Clubs:
+			$TextureRect.texture = load(\"res://assets/cards/мечи/%d.jpg\" % nominal)
+		
+		Suit.Diamonds:
+			$TextureRect.texture = load(\"res://assets/cards/пентакли/%d.jpg\" % nominal)
+"
+
+[sub_resource type="LabelSettings" id="LabelSettings_iorux"]
+font_size = 30
+shadow_size = 10
+shadow_color = Color(0, 0, 0, 1)
+shadow_offset = Vector2(0, 0)
+
+[node name="UniversalCard" type="Control" unique_id=430208596]
+custom_minimum_size = Vector2(90, 130)
+custom_maximum_size = Vector2(90, 130)
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = SubResource("GDScript_c8ugw")
+
+[node name="TextureRect" type="TextureRect" parent="." unique_id=1998001038]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_maoi1")
+expand_mode = 1
+
+[node name="MarginContainer" type="MarginContainer" parent="TextureRect" unique_id=1714990406]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 3
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TextureRect/MarginContainer" unique_id=1711323712]
+layout_mode = 2
+
+[node name="NominalLabel" type="Label" parent="TextureRect/MarginContainer/VBoxContainer" unique_id=364856415]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 8
+text = "14"
+label_settings = SubResource("LabelSettings_iorux")
+vertical_alignment = 1
+
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=126442832]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="HoverSound" type="AudioStreamPlayer" parent="." unique_id=340279972]
+unique_name_in_owner = true
+stream = ExtResource("2_maoi1")
+volume_db = -10.692
+
+[connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="." to="." method="_on_mouse_exited"]

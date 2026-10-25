@@ -1,0 +1,410 @@
+[gd_scene format=3 uid="uid://co728gfa2urfj"]
+
+[ext_resource type="Texture2D" uid="uid://wl0njme3kw2i" path="res://assets/Меню фон.png" id="1_ig7tw"]
+[ext_resource type="Texture2D" uid="uid://dbknmna5nww8" path="res://assets/Название общ.png" id="2_0xm2m"]
+[ext_resource type="Texture2D" uid="uid://b6m2uq6u2x2re" path="res://assets/flame/1.png" id="2_efxa6"]
+[ext_resource type="Texture2D" uid="uid://d3jytwl7kj3ti" path="res://assets/flame/2.png" id="3_dg77c"]
+[ext_resource type="Texture2D" uid="uid://dpaftbj5v5ov8" path="res://assets/flame/3.png" id="4_ycdy4"]
+[ext_resource type="Texture2D" uid="uid://b1bwohk83h3gt" path="res://assets/flame/4.png" id="5_w48qg"]
+[ext_resource type="Texture2D" uid="uid://d4he0527cneh1" path="res://assets/flame/5.png" id="6_vivmo"]
+[ext_resource type="Texture2D" uid="uid://bigrtd56p0iba" path="res://assets/flame/6.png" id="7_2cqfq"]
+[ext_resource type="Texture2D" uid="uid://clifpuo8qgk1f" path="res://assets/flame/7.png" id="8_yaehf"]
+[ext_resource type="Texture2D" uid="uid://cbrlm6o800oxj" path="res://assets/flame/8.png" id="9_074og"]
+[ext_resource type="Texture2D" uid="uid://8lxtcqx8qps8" path="res://assets/flame/9.png" id="10_cegan"]
+[ext_resource type="AudioStream" uid="uid://8liulmbcslcj" path="res://assets/Звук наведения на кнопку.mp3" id="12_dg77c"]
+[ext_resource type="AudioStream" uid="uid://daf5ibsxid4ee" path="res://assets/нажатие кнопки.mp3" id="13_ycdy4"]
+[ext_resource type="Texture2D" uid="uid://dypmil2v7s152" path="res://assets/Значок гр.png" id="14_w48qg"]
+
+[sub_resource type="GDScript" id="GDScript_7dm0k"]
+resource_name = "main"
+script/source = "extends Node
+
+const BATTLE_SCENE = preload(\"res://src/battle_scene.tscn\")
+const INTRO = preload(\"res://src/intro.tscn\")
+
+
+func _ready() -> void:
+	_on_h_slider_value_changed(%SoundSlider.value)
+
+
+func _on_play_button_pressed() -> void:
+	%ButtonClickSound.play()
+	%ShadingRect.show()
+	%AnimationPlayer.play(\"shade\")
+	await %AnimationPlayer.animation_finished
+	get_tree().change_scene_to_packed(INTRO)
+
+
+func _on_exit_button_pressed() -> void:
+	%ButtonClickSound.play()
+	get_tree().quit()
+
+
+func _on_back_menu_button_pressed() -> void:
+	%ButtonClickSound.play()
+	%AboutUs.hide()
+	%Menu.show()
+
+
+func _on_about_us_button_pressed() -> void:
+	%ButtonClickSound.play()
+	%Menu.hide()
+	%AboutUs.show()
+
+
+func _on_play_button_mouse_entered() -> void:
+	%ButtonHoverSound.play()
+	%HandFlame.show()
+
+
+func _on_play_button_mouse_exited() -> void:
+	%HandFlame.hide()
+
+
+func _on_back_menu_button_mouse_entered() -> void:
+	%ButtonHoverSound.play()
+
+
+func _on_about_us_button_mouse_entered() -> void:
+	%ButtonHoverSound.play()
+
+
+func _on_exit_button_mouse_entered() -> void:
+	%ButtonHoverSound.play()
+
+
+func _on_h_slider_value_changed(value: float) -> void:
+	value = value / 1e9
+	var d : float = log(value)
+	AudioServer.set_bus_mute(AudioServer.get_bus_index(\"Master\"), d <= -20.0)
+	if d > -20.0:
+		AudioServer.set_bus_volume_db(AudioServer.get_bus_index(\"Master\"), d)
+
+
+func _on_toggle_fullscreen_button_toggled(toggled_on: bool) -> void:
+	%ButtonClickSound.play()
+	if toggled_on:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+	else:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+
+
+func _on_toggle_fullscreen_button_mouse_entered() -> void:
+	%ButtonHoverSound.play()
+"
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_2ljgr"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_efxa6")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_dg77c")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_ycdy4")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_w48qg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_vivmo")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_2cqfq")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_yaehf")
+}, {
+"duration": 1.0,
+"texture": ExtResource("9_074og")
+}, {
+"duration": 1.0,
+"texture": ExtResource("10_cegan")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 10.0
+}]
+
+[sub_resource type="LabelSettings" id="LabelSettings_0xm2m"]
+font_size = 80
+outline_size = 15
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_h2yge"]
+font_size = 50
+outline_size = 15
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="Animation" id="Animation_w48qg"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("ShadingRect:color")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(0, 0, 0, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_ycdy4"]
+resource_name = "shade"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("ShadingRect:color")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(0, 0, 0, 0), Color(0, 0, 0, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_w48qg"]
+_data = {
+&"RESET": SubResource("Animation_w48qg"),
+&"shade": SubResource("Animation_ycdy4")
+}
+
+[node name="Main" type="Node" unique_id=613725866]
+script = SubResource("GDScript_7dm0k")
+
+[node name="Background" type="TextureRect" parent="." unique_id=661751955]
+offset_right = 1280.0
+offset_bottom = 720.0
+texture = ExtResource("1_ig7tw")
+
+[node name="Menu" type="Control" parent="." unique_id=1853872329]
+unique_name_in_owner = true
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HandFlame" type="AnimatedSprite2D" parent="Menu" unique_id=1710993427]
+unique_name_in_owner = true
+visible = false
+position = Vector2(249, 385)
+scale = Vector2(1.546875, 1.546875)
+sprite_frames = SubResource("SpriteFrames_2ljgr")
+autoplay = "default"
+frame_progress = 0.52446026
+
+[node name="TitleImage" type="TextureRect" parent="Menu" unique_id=13658419]
+layout_mode = 0
+offset_left = 2.0
+offset_top = 54.0
+offset_right = 1279.0
+offset_bottom = 321.0
+texture = ExtResource("2_0xm2m")
+stretch_mode = 5
+
+[node name="PlayButton" type="Button" parent="Menu" unique_id=441831142]
+layout_mode = 0
+offset_left = 98.0
+offset_top = 308.0
+offset_right = 386.0
+offset_bottom = 442.0
+theme_override_colors/font_color = Color(0.50980395, 0, 0, 1)
+theme_override_colors/font_pressed_color = Color(0.6039216, 0.1882353, 0.1882353, 1)
+theme_override_colors/font_hover_color = Color(0.63529414, 0.078431375, 0.078431375, 1)
+theme_override_font_sizes/font_size = 60
+text = "   Играть   "
+
+[node name="AboutUsButton" type="Button" parent="Menu" unique_id=1782029641]
+layout_mode = 0
+offset_left = 514.0
+offset_top = 535.0
+offset_right = 800.0
+offset_bottom = 681.0
+theme_override_font_sizes/font_size = 70
+text = "   О нас   "
+
+[node name="ExitButton" type="Button" parent="Menu" unique_id=796106543]
+layout_mode = 0
+offset_left = 896.0
+offset_top = 306.0
+offset_right = 1202.0
+offset_bottom = 452.0
+theme_override_font_sizes/font_size = 70
+text = "   Выход   "
+
+[node name="AboutUs" type="Control" parent="." unique_id=998845207]
+unique_name_in_owner = true
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_bottom = -1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="AboutUs" unique_id=1541227717]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="AboutUsLabel" type="Label" parent="AboutUs/VBoxContainer" unique_id=839457705]
+layout_mode = 2
+text = "О нас"
+label_settings = SubResource("LabelSettings_0xm2m")
+horizontal_alignment = 1
+
+[node name="TeamLabel" type="Label" parent="AboutUs/VBoxContainer" unique_id=237014558]
+layout_mode = 2
+text = "Команда \"Серьезные люди\":"
+label_settings = SubResource("LabelSettings_h2yge")
+horizontal_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="AboutUs/VBoxContainer" unique_id=230472409]
+layout_mode = 2
+theme_override_constants/separation = 100
+alignment = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="AboutUs/VBoxContainer/HBoxContainer" unique_id=132177355]
+layout_mode = 2
+alignment = 2
+
+[node name="Label" type="Label" parent="AboutUs/VBoxContainer/HBoxContainer/VBoxContainer" unique_id=383065269]
+layout_mode = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 10
+text = "Александр Потрепий"
+horizontal_alignment = 2
+
+[node name="Label2" type="Label" parent="AboutUs/VBoxContainer/HBoxContainer/VBoxContainer" unique_id=629795051]
+layout_mode = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 10
+text = "Nickus"
+horizontal_alignment = 2
+
+[node name="Label3" type="Label" parent="AboutUs/VBoxContainer/HBoxContainer/VBoxContainer" unique_id=796869847]
+layout_mode = 2
+theme_override_constants/outline_size = 10
+text = "Лизхен"
+horizontal_alignment = 2
+
+[node name="Label5" type="Label" parent="AboutUs/VBoxContainer/HBoxContainer/VBoxContainer" unique_id=1523477197]
+layout_mode = 2
+theme_override_constants/outline_size = 10
+text = "Арсений зэ Элиен"
+horizontal_alignment = 2
+
+[node name="Label4" type="Label" parent="AboutUs/VBoxContainer/HBoxContainer/VBoxContainer" unique_id=852321107]
+layout_mode = 2
+theme_override_constants/outline_size = 10
+text = "Вика Шива"
+horizontal_alignment = 2
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="AboutUs/VBoxContainer/HBoxContainer" unique_id=1384493322]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="AboutUs/VBoxContainer/HBoxContainer/VBoxContainer2" unique_id=949843157]
+layout_mode = 2
+theme_override_constants/outline_size = 10
+text = "Лидерство/Геймдизайн"
+
+[node name="Label2" type="Label" parent="AboutUs/VBoxContainer/HBoxContainer/VBoxContainer2" unique_id=1246688703]
+layout_mode = 2
+theme_override_constants/outline_size = 10
+text = "Программирование"
+
+[node name="Label3" type="Label" parent="AboutUs/VBoxContainer/HBoxContainer/VBoxContainer2" unique_id=1175870561]
+layout_mode = 2
+theme_override_constants/outline_size = 10
+text = "Арт"
+
+[node name="Label5" type="Label" parent="AboutUs/VBoxContainer/HBoxContainer/VBoxContainer2" unique_id=30782413]
+layout_mode = 2
+theme_override_constants/outline_size = 10
+text = "Музыка"
+
+[node name="Label4" type="Label" parent="AboutUs/VBoxContainer/HBoxContainer/VBoxContainer2" unique_id=11500734]
+layout_mode = 2
+theme_override_constants/outline_size = 10
+text = "Арт"
+
+[node name="BackMenuButton" type="Button" parent="AboutUs/VBoxContainer" unique_id=96796095]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 40
+text = "  Назад  "
+
+[node name="ButtonHoverSound" type="AudioStreamPlayer" parent="." unique_id=750976215]
+unique_name_in_owner = true
+stream = ExtResource("12_dg77c")
+
+[node name="ButtonClickSound" type="AudioStreamPlayer" parent="." unique_id=1904023477]
+unique_name_in_owner = true
+stream = ExtResource("13_ycdy4")
+volume_db = -13.921
+
+[node name="SoundSlider" type="HSlider" parent="." unique_id=106633470]
+unique_name_in_owner = true
+offset_left = 67.0
+offset_top = -2.0
+offset_right = 351.0
+offset_bottom = 95.0
+min_value = 1.0
+max_value = 500000000000.0
+step = 0.0
+value = 5000000000.0
+exp_edit = true
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=706889868]
+unique_name_in_owner = true
+libraries/ = SubResource("AnimationLibrary_w48qg")
+
+[node name="ToggleFullscreenButton" type="CheckBox" parent="." unique_id=853767937]
+offset_left = 990.0
+offset_top = -9.0
+offset_right = 1279.0
+offset_bottom = 113.0
+text = "Полный экран"
+
+[node name="TextureRect" type="TextureRect" parent="." unique_id=1856956246]
+offset_left = 14.0
+offset_top = 23.0
+offset_right = 63.77777
+offset_bottom = 65.0
+texture = ExtResource("14_w48qg")
+expand_mode = 1
+
+[node name="ShadingRect" type="ColorRect" parent="." unique_id=358330870]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0)
+
+[connection signal="mouse_entered" from="Menu/PlayButton" to="." method="_on_play_button_mouse_entered"]
+[connection signal="mouse_exited" from="Menu/PlayButton" to="." method="_on_play_button_mouse_exited"]
+[connection signal="pressed" from="Menu/PlayButton" to="." method="_on_play_button_pressed"]
+[connection signal="mouse_entered" from="Menu/AboutUsButton" to="." method="_on_about_us_button_mouse_entered"]
+[connection signal="pressed" from="Menu/AboutUsButton" to="." method="_on_about_us_button_pressed"]
+[connection signal="mouse_entered" from="Menu/ExitButton" to="." method="_on_exit_button_mouse_entered"]
+[connection signal="pressed" from="Menu/ExitButton" to="." method="_on_exit_button_pressed"]
+[connection signal="mouse_entered" from="AboutUs/VBoxContainer/BackMenuButton" to="." method="_on_back_menu_button_mouse_entered"]
+[connection signal="pressed" from="AboutUs/VBoxContainer/BackMenuButton" to="." method="_on_back_menu_button_pressed"]
+[connection signal="value_changed" from="SoundSlider" to="." method="_on_h_slider_value_changed"]
+[connection signal="mouse_entered" from="ToggleFullscreenButton" to="." method="_on_toggle_fullscreen_button_mouse_entered"]
+[connection signal="toggled" from="ToggleFullscreenButton" to="." method="_on_toggle_fullscreen_button_toggled"]

@@ -1,0 +1,646 @@
+[gd_scene format=3 uid="uid://b3w6l6678ryug"]
+
+[ext_resource type="Texture2D" uid="uid://563y6nnm0841" path="res://assets/Фон.png" id="1_qf1w8"]
+[ext_resource type="Texture2D" uid="uid://cfx7yw4cup7ig" path="res://assets/the_yellow_king.PNG" id="1_wds08"]
+[ext_resource type="PackedScene" uid="uid://bpot0bd5tofge" path="res://src/static_table_side.tscn" id="2_1b3d5"]
+[ext_resource type="PackedScene" uid="uid://dg8v5x33fg2bv" path="res://src/player_hand.tscn" id="2_atual"]
+[ext_resource type="Texture2D" uid="uid://c7md5l3a6dnqg" path="res://assets/Стол.png" id="3_70ma3"]
+[ext_resource type="PackedScene" uid="uid://cief1pem528sa" path="res://src/enemy_hand.tscn" id="4_cgg1q"]
+[ext_resource type="PackedScene" uid="uid://btbbej0eprsxl" path="res://src/mind_value_bar.tscn" id="4_jc1be"]
+[ext_resource type="Texture2D" uid="uid://b53fb5a3t2rsh" path="res://assets/Карты игрока 1.png" id="4_leyvj"]
+[ext_resource type="Texture2D" uid="uid://bwtchycpyu8du" path="res://assets/Говорит_1.png" id="4_vq8ne"]
+[ext_resource type="PackedScene" uid="uid://br7wds4vld8ha" path="res://src/playing_table.tscn" id="4_wds08"]
+[ext_resource type="Texture2D" uid="uid://cltdv53bqdxwt" path="res://assets/Говорит_2.png" id="5_mo83t"]
+[ext_resource type="Texture2D" uid="uid://ditk1av5gqis5" path="res://assets/Карты игрока 2.png" id="5_tlc6o"]
+[ext_resource type="Texture2D" uid="uid://dg7wuxxjt5dsd" path="res://assets/Говорит_3.png" id="6_dqjak"]
+[ext_resource type="Texture2D" uid="uid://cjso23435uaqq" path="res://assets/Говорит_4.png" id="7_5dwtk"]
+[ext_resource type="Texture2D" uid="uid://bjbompahqn24d" path="res://assets/Говорит_5.png" id="8_0lwk0"]
+[ext_resource type="Texture2D" uid="uid://csqo2fsp1r660" path="res://assets/Говорит_6.png" id="9_y2gx0"]
+[ext_resource type="Texture2D" uid="uid://bfu0i8lban25j" path="res://assets/Окно для речи.png" id="10_mo83t"]
+[ext_resource type="AudioStream" uid="uid://uk48gqnuij1o" path="res://assets/card game ost mb.mp3" id="18_dqjak"]
+[ext_resource type="PackedScene" uid="uid://btvht5lu6htlj" path="res://src/tutorial.tscn" id="18_tcj13"]
+[ext_resource type="AudioStream" uid="uid://bjrf0bjihmqwx" path="res://assets/Звук блефа.mp3" id="19_y2gx0"]
+[ext_resource type="AudioStream" uid="uid://d2t3rkh1hbr4c" path="res://assets/звук, когда взял фишку из мешочка.mp3" id="20_03krc"]
+[ext_resource type="AudioStream" uid="uid://bltgd1rw88gfa" path="res://assets/Звук, когда разыграл фишку.mp3" id="21_r3d0c"]
+[ext_resource type="AudioStream" uid="uid://4vawmdxpn2k" path="res://assets/Звук_раздачи_картперемешивание_колоды.mp3" id="22_03krc"]
+[ext_resource type="AudioStream" uid="uid://iau8uknfhjkx" path="res://assets/Разыгрывание карты.mp3" id="23_r3d0c"]
+[ext_resource type="AudioStream" uid="uid://bp515gpn61c0e" path="res://assets/Звук выбора спрятанной карты.mp3" id="24_n3bwg"]
+[ext_resource type="AudioStream" uid="uid://8liulmbcslcj" path="res://assets/Звук наведения на кнопку.mp3" id="25_pqas1"]
+[ext_resource type="AudioStream" uid="uid://ciu13gy2g600b" path="res://assets/Получение урона по врагу.mp3" id="26_0a0v5"]
+[ext_resource type="AudioStream" uid="uid://xkiarftkuqbq" path="res://assets/Получение урона по тебе.mp3" id="27_uvu22"]
+[ext_resource type="AudioStream" uid="uid://daf5ibsxid4ee" path="res://assets/нажатие кнопки.mp3" id="28_30cnc"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_tlc6o"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_wds08")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("4_vq8ne")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_mo83t")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_dqjak")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_5dwtk")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_0lwk0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("9_y2gx0")
+}],
+"loop": true,
+"name": &"speaking",
+"speed": 10.0
+}]
+
+[sub_resource type="LabelSettings" id="LabelSettings_70ma3"]
+font_size = 30
+shadow_size = 5
+shadow_color = Color(0, 0, 0, 1)
+shadow_offset = Vector2(0, 0)
+
+[sub_resource type="GDScript" id="GDScript_slk4e"]
+resource_name = "battle_scene"
+script/source = "extends Node\n\nconst UNIVERSAL_CARD = preload(\"res://src/universal_card.tscn\")\nconst UNIVERSAL_TOKEN = preload(\"res://src/universal_token.tscn\")\n\nconst LOOSE_SCENE = preload(\"res://src/loose_scene.tscn\")\nconst WIN_SCENE = preload(\"res://src/win_scene.tscn\")\n\nconst CARDS : Array[PackedScene] = [\n\tpreload(\"res://src/universal_card.tscn\")\n]\n\nconst TOKENS : Array[PackedScene] = [\n\tpreload(\"res://src/universal_token.tscn\")\n]\n\nconst FIX_CHANCE_MIN : float = 0.25\nconst FIX_CHANCE_MAX : float = 0.5\n\n@export\nvar max_cards : int = 8\n\n@export\nvar max_tokens : int = 7\n\n@export\nvar player_max_mind : int = 100\n\n@export\nvar enemy_max_mind : int = 200\n\nvar _can_act : bool = false\n\n@onready\nvar _player_mind_value : int = player_max_mind :\n\tset(v):\n\t\t_player_mind_value = max(0, v)\n\tget:\n\t\treturn _player_mind_value\n\n@onready\nvar _enemy_mind_value : int = enemy_max_mind :\n\tset(v):\n\t\t_enemy_mind_value = max(0, v)\n\tget:\n\t\treturn _enemy_mind_value\n\nvar _tour_number : int = 0\nvar _deciding_token : RuleToken\nvar _bag_tokens_setups : Array[AbstractTokenSetup] = []\nvar _deck_card_params : Array = [] # Array of [suit, nominal]\nvar _fix_chance : float = FIX_CHANCE_MIN\n\n\nfunc _ready() -> void:\n\t%MindValueBar.set_enemy_max_mind(enemy_max_mind)\n\t%MindValueBar.set_player_max_mind(player_max_mind)\n\t\n\t\n\t%MainCamera.set_marker(%PlayerTurnCameraMarker)\n\tawait new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))\n\t_can_act = true\n\t\n\n\nfunc new_tour_async(total_cards:int, hidden_cards:int, initial_tokens:int = 3) -> void:\n\t%MainCamera.set_marker(%PlayerTurnCameraMarker)\n\t\n\t_tour_number += 1\n\t%PlayerHand.clear_cards()\n\t%PlayerHand.clear_tokens()\n\t\n\t%EnemyHand.clear_cards()\n\t%EnemyHand.clear_tokens()\n\t\n\t%PlayingTable.clear_played_cards()\n\t%PlayingTable.clear_tokens()\n\t\n\t%StaticTableSide.clear_hidden_cards()\n\t\n\tif _tour_number == 1:\n\t\tawait _show_modal_message_async(\"Кажется на столе кто-то оставил мне подсказки...\", 2.5, Color.YELLOW)\n\t\t\n\t%NewTourSound.play()\n\t\n\tawait _show_modal_message_async(\"Подготовка нового тура...\", 1.2)\n\tawait get_tree().process_frame\n\tawait get_tree().process_frame\n\t\n\t_bag_tokens_setups = []\n\tif randi() % 2 == 0:\n\t\t_bag_tokens_setups.append(HighTokenSetup.new())\n\telse:\n\t\t_bag_tokens_setups.append(LowTokenSetup.new())\n\t_bag_tokens_setups.append(RangeTokenSetup.new())\n\t_bag_tokens_setups.append(CoinflipTokenSetup.new())\n\t_bag_tokens_setups.append(FlashTokenSetup.new())\n\t\n\tif randi() % 2 == 0:\n\t\t_bag_tokens_setups.append(OvercardTokenSetup.new())\n\telse:\n\t\t_bag_tokens_setups.append(UnderdogTokenSetup.new())\n\t\t\n\t_bag_tokens_setups.append(SpoofTokenSetup.new())\n\t_bag_tokens_setups.append(SqueezTokenSetup.new())\n\t_bag_tokens_setups.append(StreetTokenSetup.new())\n\t_bag_tokens_setups.append(SuitTokenSetup.new())\n\t_bag_tokens_setups.append(VoltTokenSetup.new())\n\t_bag_tokens_setups.append(EmptyTableTokenSetup.new())\n\t_bag_tokens_setups.append(CrapTokenSetup.new())\n\t_bag_tokens_setups.append(AdjustTokenSetup.new())\n\t\n\t_deck_card_params = []\n\tfor suit:PlayableCard.Suit in [PlayableCard.Suit.Spades, PlayableCard.Suit.Hearts, \n\t\tPlayableCard.Suit.Clubs, PlayableCard.Suit.Diamonds]:\n\t\t\n\t\tfor nominal:int in range(1, 10 + 1):\n\t\t\t_deck_card_params.append([suit, nominal])\n\t\n\t%StaticTableSide.set_bag_enabled(true)\n\t\n\tfor i:int in range(initial_tokens):\n\t\tvar token : RuleToken = _create_random_token(PlayingSides.player)\n\t\tassert(token != null)\n\t\t%PlayerHand.add_token(token)\n\t\t\n\t\tvar enemy_token : RuleToken = _create_random_token(PlayingSides.enemy)\n\t\tassert(enemy_token != null)\n\t\t%EnemyHand.add_token(enemy_token)\n\t\n\tfor i:int in range(total_cards):\n\t\tvar card : PlayableCard = _create_random_card()\n\t\tcard.side = PlayingSides.player\n\t\t%PlayerHand.add_card(card)\n\t\t\n\t\tvar enemy_card : PlayableCard = _create_random_card()\n\t\tenemy_card.side = PlayingSides.enemy\n\t\t%EnemyHand.add_card(enemy_card)\n\t\n\t%MessageLabel.show()\n\t%MessageLabel.text = \"Ознакомьтесь с жетонами и выберите свою очередную скрытую карту\"\n\tfor i:int in range(hidden_cards):\n\t\tvar card : PlayableCard = await %PlayerHand.select_card_async()\n\t\t%StaticTableSide.add_hidden_card(card)\n\t\t%HiddenCardSelectingSound.play()\n\t\t\n\t\tvar enemy_card : PlayableCard = %EnemyHand.cards().pick_random()\n\t\t%StaticTableSide.add_hidden_card(enemy_card)\n\t\n\tfor card:PlayableCard in %PlayerHand.cards():\n\t\tcard.responsive = true\n\t\n\t%MessageLabel.hide()\n\t\n\tawait _show_modal_message_async(\"Да начнется тур!\\\nПожалуйста, делайте первый ход\", 1.5)\n\n\nfunc _enemy_simulate_won_cards_after_playing_card(card: PlayableCard) -> int:\n\tvar hidden_cards : Array[PlayableCard] = %StaticTableSide.hidden_cards()\n\tvar cards_pool : Array[PlayableCard] = %PlayingTable.played_cards().duplicate()\n\tvar tokens_on_cards : Dictionary[RuleToken, PlayableCard] = %PlayingTable.played_cards_tokens().duplicate()\n\tcards_pool.append(card)\n\tvar tokens : Array[RuleToken] = []\n\ttokens.append_array(%PlayingTable.played_general_tokens())\n\tfor token:RuleToken in tokens_on_cards.keys():\n\t\ttokens.append(token)\n\ttokens.append_array(%PlayingTable.played_side_tokens())\n\tvar won_cards : Array[PlayableCard] = []\n\tfor token:RuleToken in tokens:\n\t\tvar token_won_cards : Array[PlayableCard] = []\n\t\tif token.setup.type() == AbstractTokenSetup.Type.General:\n\t\t\ttoken_won_cards = token.setup.won_cards(hidden_cards, cards_pool)\n\t\telif token.setup.type() == AbstractTokenSetup.Type.Sided:\n\t\t\ttoken_won_cards = token.setup.won_cards(hidden_cards, cards_pool)\n\t\telse:\n\t\t\tif tokens_on_cards.has(token):\n\t\t\t\ttoken_won_cards = token.setup.won_cards(hidden_cards, cards_pool, tokens_on_cards[token])\n\t\t\telse:\n\t\t\t\ttoken_won_cards = token.setup.won_cards(hidden_cards, cards_pool)\n\t\tfor c:PlayableCard in token_won_cards:\n\t\t\tif not won_cards.has(c):\n\t\t\t\twon_cards.append(c)\n\tvar count : int = 0\n\tfor c:PlayableCard in won_cards:\n\t\tif c.side == PlayingSides.enemy:\n\t\t\t\tcount += 1\n\treturn count\n\n\nfunc _enemy_simulate_won_cards_after_playing_token(token: RuleToken, target_card: PlayableCard = null) -> int:\n\tvar hidden_cards : Array[PlayableCard] = %StaticTableSide.hidden_cards()\n\tvar cards_pool : Array[PlayableCard] = %PlayingTable.played_cards().duplicate()\n\tvar tokens_on_cards : Dictionary[RuleToken, PlayableCard] = %PlayingTable.played_cards_tokens().duplicate()\n\tvar tokens : Array[RuleToken] = []\n\ttokens.append_array(%PlayingTable.played_general_tokens())\n\tfor t:RuleToken in tokens_on_cards.keys():\n\t\ttokens.append(t)\n\ttokens.append_array(%PlayingTable.played_side_tokens())\n\ttokens.append(token)\n\tif token.setup.type() == AbstractTokenSetup.Type.OnCard and target_card != null:\n\t\ttokens_on_cards[token] = target_card\n\tvar won_cards : Array[PlayableCard] = []\n\tfor t:RuleToken in tokens:\n\t\tvar token_won_cards : Array[PlayableCard] = []\n\t\tif t.setup.type() == AbstractTokenSetup.Type.General:\n\t\t\ttoken_won_cards = t.setup.won_cards(hidden_cards, cards_pool)\n\t\telif t.setup.type() == AbstractTokenSetup.Type.Sided:\n\t\t\ttoken_won_cards = t.setup.won_cards(hidden_cards, cards_pool)\n\t\telse:\n\t\t\tif tokens_on_cards.has(t):\n\t\t\t\ttoken_won_cards = t.setup.won_cards(hidden_cards, cards_pool, tokens_on_cards[t])\n\t\t\telse:\n\t\t\t\ttoken_won_cards = t.setup.won_cards(hidden_cards, cards_pool)\n\t\tfor c:PlayableCard in token_won_cards:\n\t\t\tif not won_cards.has(c):\n\t\t\t\twon_cards.append(c)\n\tvar count : int = 0\n\tfor c:PlayableCard in won_cards:\n\t\tif c.side == PlayingSides.enemy:\n\t\t\t\tcount += 1\n\treturn count\n\n\nfunc _enemy_decide_best_move() -> Dictionary:\n\tvar current_won : int = _enemy_won_cards_count()\n\tvar best_gain : int = -10000\n\tvar best_action : int = 2 # default draw\n\tvar best_card : PlayableCard = null\n\tvar best_token : RuleToken = null\n\tvar best_target : PlayableCard = null\n\t\n\t# Try playing cards - predict possible counter moves\n\tfor card in %EnemyHand.cards():\n\t\tvar projected = _enemy_simulate_won_cards_after_playing_card(card)\n\t\tvar gain = projected - current_won\n\t\tvar penalty = 0\n\t\t# if we gain a lot, player might fix - be more cautious\n\t\tif gain >= 2 and _fix_chance > 0.35:\n\t\t\tpenalty = 1\n\t\telif gain >= 1 and _fix_chance > 0.45:\n\t\t\tpenalty = 1\n\t\tif gain - penalty > best_gain:\n\t\t\tbest_gain = gain - penalty\n\t\t\tbest_action = 0\n\t\t\tbest_card = card\n\t\t\tbest_token = null\n\t\t\tbest_target = null\n\t\n\t# Try playing tokens\n\tfor token in %EnemyHand.tokens():\n\t\tif token.setup.type() == AbstractTokenSetup.Type.OnCard:\n\t\t\tif _has_played_cards_without_tokens():\n\t\t\t\tfor target in %PlayingTable.played_cards():\n\t\t\t\t\tif target.token == null:\n\t\t\t\t\t\tvar projected = _enemy_simulate_won_cards_after_playing_token(token, target)\n\t\t\t\t\t\tvar gain = projected - current_won\n\t\t\t\t\t\tvar penalty = 0\n\t\t\t\t\t\tif gain >= 2 and _fix_chance > 0.35:\n\t\t\t\t\t\t\tpenalty = 1\n\t\t\t\t\t\tif gain - penalty > best_gain:\n\t\t\t\t\t\t\tbest_gain = gain - penalty\n\t\t\t\t\t\t\tbest_action = 1\n\t\t\t\t\t\t\tbest_card = null\n\t\t\t\t\t\t\tbest_token = token\n\t\t\t\t\t\t\tbest_target = target\n\t\telse:\n\t\t\tvar projected = _enemy_simulate_won_cards_after_playing_token(token)\n\t\t\tvar gain = projected - current_won\n\t\t\tvar penalty = 0\n\t\t\tif gain >= 2 and _fix_chance > 0.35:\n\t\t\t\tpenalty = 1\n\t\t\tif gain - penalty > best_gain:\n\t\t\t\tbest_gain = gain - penalty\n\t\t\t\tbest_action = 1\n\t\t\t\tbest_card = null\n\t\t\t\tbest_token = token\n\t\t\t\tbest_target = null\n\t\n\t# Consider drawing token if no good immediate plays\n\tif best_gain <= 0 and not %EnemyHand.cards().is_empty() == false and %EnemyHand.tokens().is_empty():\n\t\tbest_action = 2\n\t\n\t# If in bad position and fix chance is reasonable, consider fix\n\tif current_won == 0 and _enemy_played_cards_count() >= 1 and _fix_chance >= 0.3 and best_gain <= 0:\n\t\t# only fix if player might be ahead or we have nothing to gain\n\t\tif randf() < _fix_chance * 0.5: # be somewhat conservative\n\t\t\tbest_action = 3\n\t\n\treturn {\"action\": best_action, \"card\": best_card, \"token\": best_token, \"target_card\": best_target}\n\n\n\nfunc enemy_make_turn_async() -> void:\n\tawait get_tree().create_timer(0.5, false).timeout\n\t%MainCamera.set_marker(%EnemyReplicaCameraMarker)\n\t%KingImage.play(\"speaking\")\n\t%EnemyReplicaLabel.text = _random_enemy_replica()\n\t%KingSpeechBubble.show()\n\tawait get_tree().create_timer(1.5, false).timeout\n\t%KingImage.play(\"default\")\n\t%KingSpeechBubble.hide()\n\t%MainCamera.set_marker(%EnemyTurnCameraMarker)\n\tawait get_tree().create_timer(1.0, false).timeout\n\t\n\t#СЮДА ИИ\n\tvar won_cards_now : int = _enemy_won_cards_count()\n\t_fix_chance = FIX_CHANCE_MIN + (FIX_CHANCE_MAX - FIX_CHANCE_MIN) * (won_cards_now / float(won_cards_now + 1))\n\tfor token:RuleToken in %EnemyHand.tokens():\n\t\tprint(token.setup.description())\n\tprint(\"Враг сыграл карт на столе: %d\" % _enemy_played_cards_count())\n\tprint(\"Враг выиграл карт на столе: %d\" % _enemy_won_cards_count())\n\tprint(\"Шанс врага зафиксировать победу: %.2f\" % _fix_chance)\n\t\n\tvar move = _enemy_decide_best_move()\n\tmatch move.action:\n\t\t0: # play card\n\t\t\tif move.card != null:\n\t\t\t\t%PlayingTable.play_card(move.card)\n\t\t\t\t%CardPlaySound.play()\n\t\t\telse:\n\t\t\t\tif not %EnemyHand.cards().is_empty():\n\t\t\t\t\tvar c = %EnemyHand.cards().pick_random()\n\t\t\t\t\t%PlayingTable.play_card(c)\n\t\t\t\t\t%CardPlaySound.play()\n\t\t\t\telse:\n\t\t\t\t\tvar t2 = _create_random_token(PlayingSides.enemy)\n\t\t\t\t\tif t2 == null:\n\t\t\t\t\t\t%FixSound.play()\n\t\t\t\t\t\t%ShadingRect.show()\n\t\t\t\t\t\t%KingFixDialog.show()\n\t\t\t\t\t\t#press button code here\n\t\t\t\t\t\treturn\n\t\t\t\t\t%BagSound.play()\n\t\t\t\t\t%EnemyHand.add_token(t2)\n\t\t1: # play token\n\t\t\tvar et = move.token\n\t\t\tif et == null:\n\t\t\t\tfor t in %EnemyHand.tokens():\n\t\t\t\t\tet = t\n\t\t\t\t\tbreak\n\t\t\tif et != null and et.setup.type() == AbstractTokenSetup.Type.OnCard:\n\t\t\t\tif move.target_card != null and _has_played_cards_without_tokens():\n\t\t\t\t\t%TokenPlaySound.play()\n\t\t\t\t\t%PlayingTable.play_token(et, move.target_card)\n\t\t\t\telse:\n\t\t\t\t\tvar played_alt = false\n\t\t\t\t\tfor alt in %EnemyHand.tokens():\n\t\t\t\t\t\tif alt.setup.type() == AbstractTokenSetup.Type.OnCard:\n\t\t\t\t\t\t\tif _has_played_cards_without_tokens():\n\t\t\t\t\t\t\t\tfor pt in %PlayingTable.played_cards():\n\t\t\t\t\t\t\t\t\tif pt.token == null:\n\t\t\t\t\t\t\t\t\t\t%TokenPlaySound.play()\n\t\t\t\t\t\t\t\t\t\t%PlayingTable.play_token(alt, pt)\n\t\t\t\t\t\t\t\t\t\tplayed_alt = true\n\t\t\t\t\t\t\t\t\t\tbreak\n\t\t\t\t\t\t\tif played_alt: break\n\t\t\t\t\t\telse:\n\t\t\t\t\t\t\t%TokenPlaySound.play()\n\t\t\t\t\t\t\t%PlayingTable.play_token(alt)\n\t\t\t\t\t\t\tplayed_alt = true\n\t\t\t\t\t\t\tbreak\n\t\t\t\t\tif not played_alt:\n\t\t\t\t\t\t%ShadingRect.show()\n\t\t\t\t\t\t%KingFixDialog.show()\n\t\t\t\t\t\t%FixSound.play()\n\t\t\t\t\t\t#press button code here\n\t\t\t\t\t\treturn\n\t\t\telif et != null:\n\t\t\t\t%TokenPlaySound.play()\n\t\t\t\t%PlayingTable.play_token(et)\n\t\t\telse:\n\t\t\t\tvar dt3 = _create_random_token(PlayingSides.enemy)\n\t\t\t\tif dt3 == null:\n\t\t\t\t\t%FixSound.play()\n\t\t\t\t\t%ShadingRect.show()\n\t\t\t\t\t%KingFixDialog.show()\n\t\t\t\t\t#press button code here\n\t\t\t\t\treturn\n\t\t\t\t%BagSound.play()\n\t\t\t\t%EnemyHand.add_token(dt3)\n\t\t2: # draw token\n\t\t\tvar dt4 = _create_random_token(PlayingSides.enemy)\n\t\t\tif dt4 == null:\n\t\t\t\t%FixSound.play()\n\t\t\t\t%ShadingRect.show()\n\t\t\t\t%KingFixDialog.show()\n\t\t\t\t#press button code here\n\t\t\t\treturn\n\t\t\t%BagSound.play()\n\t\t\t%EnemyHand.add_token(dt4)\n\t\t3: # fix\n\t\t\t%ShadingRect.show()\n\t\t\t%KingFixDialog.show()\n\t\t\t%FixSound.play()\n\t\t\t#press button code here\n\t\t\treturn\n\t\n\tawait get_tree().create_timer(1.0, false).timeout\n\t%MainCamera.set_marker(%PlayerTurnCameraMarker)\n\tawait get_tree().create_timer(0.5, false).timeout\n\t_can_act = true\n\n\nfunc _enemy_played_cards_count() -> int:\n\tvar count : int = 0\n\tfor card:PlayableCard in %PlayingTable.played_cards():\n\t\tif card.side == PlayingSides.enemy:\n\t\t\tcount += 1\n\t\n\treturn count\n\n\nfunc _on_player_hand_token_play_request(token: RuleToken) -> void:\n\tif not _can_act:\n\t\treturn\n\t\n\t_can_act = false\n\t%TokenPlaySound.play()\n\tif token.setup.type() == AbstractTokenSetup.Type.OnCard:\n\t\tif not _has_played_cards_without_tokens():\n\t\t\tawait _show_modal_message_async(\"Чтобы использовать этот жетон нужны разыгранные карты без жетонов\", 1.5)\n\t\t\t_can_act = true\n\t\t\treturn\n\t\t\n\t\tvar selected_card : PlayableCard\n\t\tfor card:PlayableCard in %PlayerHand.cards():\n\t\t\tcard.responsive = false\n\t\t\n\t\tfor hand_token:RuleToken in %PlayerHand.tokens():\n\t\t\thand_token.responsive = false\n\t\t\t\n\t\twhile true:\n\t\t\t%MessageLabel.text = \"Выберите карту, на которую положить жетон\"\n\t\t\t%MessageLabel.show()\n\t\t\tselected_card = await %PlayingTable.select_card_async()\n\t\t\t%MessageLabel.hide()\n\t\t\tif selected_card.token != null:\n\t\t\t\tawait _show_modal_message_async(\"На этой карте уже есть жетон!\", 1.5)\n\t\t\t\tcontinue\n\t\t\telse:\n\t\t\t\tbreak\n\t\t\n\t\tfor hand_token:RuleToken in %PlayerHand.tokens():\n\t\t\thand_token.responsive = true\n\t\t\n\t\tfor card:PlayableCard in %PlayerHand.cards():\n\t\t\tcard.responsive = true\n\t\t\n\t\t%PlayingTable.play_token(token, selected_card)\n\telse:\n\t\t%PlayingTable.play_token(token)\n\t\n\tif _is_tour_finished():\n\t\t_can_act = false\n\t\tawait _reveal_table_async()\n\t\tawait new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))\n\t\t_can_act = true\n\telse:\n\t\tawait enemy_make_turn_async()\n\t\tif _is_tour_finished():\n\t\t\t_can_act = false\n\t\t\tawait _reveal_table_async()\n\t\t\tawait new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))\n\t\t\t_can_act = true\n\t\n\nfunc _on_fix_position_button_pressed() -> void:\n\tif _can_act:\n\t\t%FixSound.play()\n\t\t_can_act = false\n\t\tif await _is_enemy_trust_fix_async():\n\t\t\tawait _enemy_take_damage_async(_base_damage())\n\t\t\tawait new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))\n\t\t\t_can_act = true\n\t\telse:\n\t\t\tawait _reveal_table_async(PlayingSides.player)\n\t\t\tawait new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))\n\t\t_can_act = true\n\n\nfunc _on_player_hand_card_clicked(card: PlayableCard) -> void:\n\tif _can_act:\n\t\t%CardPlaySound.play()\n\t\t%PlayingTable.play_card(card)\n\t\t\n\t\t_can_act = false\n\t\t\n\t\tif _is_tour_finished():\n\t\t\t_can_act = false\n\t\t\tawait _reveal_table_async()\n\t\t\tawait new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))\n\t\t\t_can_act = true\n\t\telse:\n\t\t\tawait enemy_make_turn_async()\n\t\t\tif _is_tour_finished():\n\t\t\t\t_can_act = false\n\t\t\t\tawait _reveal_table_async()\n\t\t\t\tawait new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))\n\t\t\t\t_can_act = true\n\n\nfunc _on_static_table_side_get_token_requested() -> void:\n\tif _can_act:\n\t\tvar token : RuleToken = _create_random_token(PlayingSides.player)\n\t\tif token == null:\n\t\t\tawait _show_modal_message_async(\"Жетоны кончились!\", 1.2)\n\t\t\treturn\n\t\t\n\t\t%BagSound.play()\n\t\t\n\t\ttoken.side = PlayingSides.player\n\t\t%PlayerHand.add_token(token)\n\t\t_can_act = false\n\t\t_deciding_token = token\n\t\tif _deciding_token.setup.type() == AbstractTokenSetup.Type.OnCard and not _has_played_cards_without_tokens():\n\t\t\tawait _show_modal_message_async(\"Разрыграть взятый жетон невозможно: для этого нужны разыгранные карты без жетонов\", 1.2)\n\t\t\tawait enemy_make_turn_async()\n\t\t\tif _is_tour_finished():\n\t\t\t\t_can_act = false\n\t\t\t\tawait _reveal_table_async()\n\t\t\t\tawait new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))\n\t\t\t\t_can_act = true\n\t\telse:\n\t\t\t%TokenDialogLabel.text = \"Вы вытягиваете жетон: %s\" % token.setup.description()\n\t\t\t%ShadingRect.show()\n\t\t\t%NewTokenDialog.show()\n\n\nfunc _create_random_token_setup(side:PlayingSides) -> AbstractTokenSetup:\n\tif _bag_tokens_setups.is_empty():\n\t\treturn null\n\t\n\tvar result : AbstractTokenSetup = _bag_tokens_setups.pick_random()\n\t_bag_tokens_setups.erase(result)\n\t\n\tif _bag_tokens_setups.is_empty():\n\t\t%StaticTableSide.set_bag_enabled(false)\n\t\t\n\tif result is CoinflipTokenSetup or result is CrapTokenSetup:\n\t\tresult.even_odd = randi() % 2\n\telif result is SpoofTokenSetup or result is VoltTokenSetup or \\\n\t\t\tresult is EmptyTableTokenSetup or \\\n\t\t\tresult is OvercardTokenSetup or result is UnderdogTokenSetup:\n\t\tresult.side = side\n\t\n\treturn result\n\n\nfunc _create_random_token(side:PlayingSides) -> RuleToken:\n\tvar setup : AbstractTokenSetup = _create_random_token_setup(side)\n\tif setup == null:\n\t\treturn null\n\t\n\tvar token : RuleToken = (TOKENS.pick_random() as PackedScene).instantiate() as RuleToken\n\ttoken.side = side\n\ttoken.setup = setup\n\treturn token\n\n\nfunc _create_random_card() -> PlayableCard:\n\tvar card : PlayableCard = (CARDS.pick_random() as PackedScene).instantiate() as PlayableCard\n\t\n\tvar params : Array = _deck_card_params.pick_random()\n\t_deck_card_params.erase(params)\n\t\n\tcard.suit = params[0]\n\tcard.nominal = params[1]\n\treturn card\n\n\nfunc _collect_won_cards() -> Array[PlayableCard]:\n\tvar hidden_cards : Array[PlayableCard] = %StaticTableSide.hidden_cards()\n\tvar cards_pool : Array[PlayableCard] = %PlayingTable.played_cards()\n\tvar tokens_on_cards : Dictionary[RuleToken, PlayableCard] = %PlayingTable.played_cards_tokens()\n\t\n\tvar tokens : Array[RuleToken] = []\n\ttokens.append_array(%PlayingTable.played_general_tokens())\n\tfor token:RuleToken in tokens_on_cards.keys():\n\t\ttokens.append(token)\n\ttokens.append_array(%PlayingTable.played_side_tokens())\n\t\n\tvar won_cards : Array[PlayableCard] = []\n\tfor token:RuleToken in tokens:\n\t\tvar token_won_cards : Array[PlayableCard] = []\n\t\tif token.setup.type() == AbstractTokenSetup.Type.General:\n\t\t\ttoken_won_cards = token.setup.won_cards(hidden_cards, cards_pool)\n\t\telif token.setup.type() == AbstractTokenSetup.Type.Sided:\n\t\t\ttoken_won_cards = token.setup.won_cards(hidden_cards, cards_pool)\n\t\telse:\n\t\t\ttoken_won_cards = token.setup.won_cards(hidden_cards, cards_pool, tokens_on_cards[token])\n\t\t\n\t\tfor card:PlayableCard in token_won_cards:\n\t\t\tif not won_cards.has(card):\n\t\t\t\twon_cards.append(card)\n\t\n\treturn won_cards\n\n\nfunc _enemy_won_cards_count() -> int:\n\tvar count : int = 0\n\tfor card:PlayableCard in _collect_won_cards():\n\t\tif card.side == PlayingSides.enemy:\n\t\t\tcount += 1\n\t\n\treturn count\n\n\nfunc _reveal_table_async(initiatior:PlayingSides = null) -> void:\n\tfor card:PlayableCard in %StaticTableSide.hidden_cards():\n\t\tcard.state = PlayableCard.State.HiddenRevealed\n\t\tcard.visible_state = PlayableCard.VisibleState.Visible\n\t\n\tawait _show_modal_message_async(\"Так, посмотрим...\", 1.0)\n\tawait get_tree().create_timer(1.0, false).timeout\n\t\n\tvar won_cards : Array[PlayableCard] = _collect_won_cards()\n\t\n\tvar player_won_cards : Array[PlayableCard] = []\n\tvar enemy_won_cards : Array[PlayableCard] = []\n\tfor card:PlayableCard in won_cards:\n\t\tif card.side == PlayingSides.player:\n\t\t\tplayer_won_cards.append(card)\n\t\telif card.side == PlayingSides.enemy:\n\t\t\tenemy_won_cards.append(card)\n\t\telse:\n\t\t\tassert(false)\n\t\n\tawait _show_stats_async(len(player_won_cards), len(enemy_won_cards))\n\t\n\tvar base_damage : int = _base_damage()\n\tif initiatior == null: # Игра закончилась автоматически\n\t\tif len(player_won_cards) > len(enemy_won_cards):\n\t\t\tawait _enemy_take_damage_async(base_damage)\n\t\telif len(enemy_won_cards) > len(player_won_cards):\n\t\t\tawait _player_take_damage_async(base_damage)\n\t\telse:\n\t\t\tawait _random_take_damage_async(base_damage)\n\telif initiatior == PlayingSides.player: # Игрок зафиксировал\n\t\tif len(player_won_cards) > len(enemy_won_cards):\n\t\t\tawait _enemy_take_damage_async(base_damage * 2)\n\t\telif len(enemy_won_cards) > len(player_won_cards):\n\t\t\tawait _player_take_damage_async(base_damage * 2)\n\t\telse:\n\t\t\tawait _player_take_damage_async(base_damage)\n\telif initiatior == PlayingSides.enemy: # Враг зафиксировал\n\t\tif len(player_won_cards) > len(enemy_won_cards):\n\t\t\tawait _enemy_take_damage_async(base_damage * 2)\n\t\telif len(enemy_won_cards) > len(player_won_cards):\n\t\t\tawait _player_take_damage_async(base_damage * 2)\n\t\telse:\n\t\t\tawait _enemy_take_damage_async(base_damage)\n\telse:\n\t\tassert(false)\n\n\nfunc _player_take_damage_async(damage:int) -> void:\n\tawait _show_modal_message_async(\"Вы теряете %d рассудка!\" % damage, 1.5)\n\t_player_mind_value -= damage\n\t%MindValueBar.set_player_mind(_player_mind_value)\n\t\n\tif _player_mind_value <= 0:\n\t\t_can_act = false\n\t\t%PlayerDamageSound.play()\n\t\tawait _show_modal_message_async(\"...\", 2.0)\n\t\tget_tree().change_scene_to_packed.call_deferred(LOOSE_SCENE)\n\n\nfunc _enemy_take_damage_async(damage:int) -> void:\n\tawait _show_modal_message_async(\"Король теряет %d рассудка!\" % damage, 1.5)\n\t_enemy_mind_value -= damage\n\t%MindValueBar.set_enemy_mind(_enemy_mind_value)\n\t\n\tif _enemy_mind_value <= 0:\n\t\t_can_act = false\n\t\t%KingDamageSound.play()\n\t\tawait _show_modal_message_async(\"!!!\", 2.0)\n\t\tget_tree().change_scene_to_packed.call_deferred(WIN_SCENE)\n\n\nfunc _random_take_damage_async(damage:int) -> void:\n\tawait _show_modal_message_async(\"Подбрасываем монетку...\", 1.0)\n\t\n\tvar factor : float = randf()\n\tif factor <= 0.5:\n\t\tawait _player_take_damage_async(damage)\n\telse:\n\t\tawait _enemy_take_damage_async(damage)\n\n\nfunc _is_tour_finished() -> bool:\n\tvar cards_count : int = len(%PlayingTable.played_cards())\n\tif cards_count >= max_cards:\n\t\treturn true\n\t\n\tvar player_cards_count : int = len(%PlayerHand.cards())\n\tif player_cards_count == 0:\n\t\treturn true\n\t\n\tvar enemy_cards_count : int = len(%EnemyHand.cards())\n\tif enemy_cards_count == 0:\n\t\treturn true\n\t\n\tvar tokens_count : int = len(%PlayingTable.played_cards_tokens()) \\\n\t\t+ len(%PlayingTable.played_general_tokens()) \\\n\t\t+ len(%PlayingTable.played_side_tokens())\n\tif tokens_count >= max_tokens:\n\t\treturn true\n\t\n\treturn false\n\n\nfunc _base_damage() -> int:\n\treturn 10\n\n\nfunc _is_enemy_trust_fix_async() -> bool:\n\tawait _show_modal_message_async(\"Верю ли я тебе..?\", 1.0)\n\t\n\tvar result : bool = randf() <= 0.5\n\tif result:\n\t\tawait _show_modal_message_async(\"Пожалуй, да\")\n\telse:\n\t\tawait _show_modal_message_async(\"Пожалуй, нет\")\n\t\n\treturn result\n\n\nfunc _show_stats_async(player_won_cards:int, enemy_won_cards:int) -> void:\n\tawait _show_modal_message_async(\"Ваших победных карт: %d\\\n Победных карт Короля: %d\" % \n\t\t[player_won_cards, enemy_won_cards], 2.0)\n\n\nfunc _show_modal_message_async(message:String, time_sec:float=0.7, color:Color=Color.WHITE) -> void:\n\t%ShadingRect.show()\n\t%MessageLabel.text = message\n\t%MessageLabel.show()\n\t\n\t%MessageLabel.self_modulate = color\n\tawait get_tree().create_timer(time_sec, false).timeout\n\t\n\t%ShadingRect.hide()\n\t%MessageLabel.hide()\n\n\nfunc _random_enemy_replica() -> String:\n\treturn [\n\t\t\"Теперь мой черед!\",\n\t\t\"Моя пора действовать!\",\n\t\t\"Тут уже все ясно\",\n\t\t\"Хм...\",\n\t\t\"Так так так\",\n\t\t\"Уверен?\"].pick_random()\n\n\nfunc _tour_cards(tour:int) -> int:\n\tmatch tour:\n\t\t1, 2:\n\t\t\treturn 7\n\t\t\n\t\t3, 4:\n\t\t\treturn 8\n\t\t\n\t\t_:\n\t\t\treturn 9\n\n\nfunc _tour_hidden_cards(tour:int) -> int:\n\tmatch tour:\n\t\t1, 2:\n\t\t\treturn 2\n\t\t\n\t\t3, 4:\n\t\t\treturn 3\n\t\t\n\t\t_:\n\t\t\treturn 4\n\n\nfunc _on_play_token_button_pressed() -> void:\n\t%ButtonClickSound.play()\n\t%ShadingRect.hide()\n\t%NewTokenDialog.hide()\n\t\n\t_can_act = true\n\t_on_player_hand_token_play_request(_deciding_token)\n\n\nfunc _on_save_token_button_pressed() -> void:\n\t%ButtonClickSound.play()\n\t%ShadingRect.hide()\n\t%NewTokenDialog.hide()\n\t\n\tawait enemy_make_turn_async()\n\tif _is_tour_finished():\n\t\t_can_act = false\n\t\tawait _reveal_table_async()\n\t\tawait new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))\n\t\t_can_act = true\n\n\nfunc _has_played_cards_without_tokens() -> bool:\n\tvar played_cards : Array[PlayableCard] = %PlayingTable.played_cards()\n\tfor card:PlayableCard in played_cards:\n\t\tif card.token == null:\n\t\t\treturn true\n\t\n\treturn false\n\n\nfunc _on_turst_button_pressed() -> void:\n\t%ButtonClickSound.play()\n\t%ShadingRect.hide()\n\t%KingFixDialog.hide()\n\t\n\t_can_act = false\n\tawait _player_take_damage_async(_base_damage())\n\tawait new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))\n\t_can_act = true\n\n\nfunc _on_dont_trust_button_pressed() -> void:\n\t%ButtonClickSound.play()\n\t%ShadingRect.hide()\n\t%KingFixDialog.hide()\n\t\n\t_can_act = false\n\tawait _reveal_table_async(PlayingSides.enemy)\n\tawait new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))\n\t_can_act = true\n"
+
+[sub_resource type="GDScript" id="GDScript_70ma3"]
+resource_name = "camera"
+script/source = "extends Camera2D
+
+
+var _marker : Marker2D
+
+
+@warning_ignore(\"unused_parameter\")
+func _process(delta: float) -> void:
+	if _marker != null:
+		position = _marker.position
+
+
+func set_marker(marker:Marker2D) -> void:
+	position = marker.position
+	_marker = marker
+"
+
+[sub_resource type="GDScript" id="GDScript_wds08"]
+resource_name = "player_turn_camera_marker"
+script/source = "@tool
+extends Marker2D
+
+
+@warning_ignore(\"unused_parameter\")
+func _process(delta: float) -> void:
+	global_position.x = %MainLayout.get_global_rect().get_center().x
+	global_position.y = %MainLayout.get_global_rect().end.y - get_viewport_rect().size.y / 2.0
+"
+
+[sub_resource type="GDScript" id="GDScript_qf1w8"]
+script/source = "@tool
+extends Marker2D
+
+
+@warning_ignore(\"unused_parameter\")
+func _process(delta: float) -> void:
+	global_position.x = %MainLayout.get_global_rect().get_center().x
+	global_position.y = min(%GameField.get_global_rect().position.y 
+		+ get_viewport_rect().size.y / 2.0, %PlayerTurnCameraMarker.global_position.y)
+"
+
+[sub_resource type="GDScript" id="GDScript_leyvj"]
+script/source = "@tool
+extends Marker2D
+
+
+@warning_ignore(\"unused_parameter\")
+func _process(delta: float) -> void:
+	global_position.x = %MainLayout.get_global_rect().get_center().x
+	global_position.y = %KingImage.global_position.y + get_viewport_rect().size.y / 2.0
+"
+
+[sub_resource type="LabelSettings" id="LabelSettings_tlc6o"]
+font_size = 50
+outline_size = 30
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_wds08"]
+font_size = 32
+
+[sub_resource type="LabelSettings" id="LabelSettings_qf1w8"]
+font_size = 32
+
+[sub_resource type="GDScript" id="GDScript_30cnc"]
+resource_name = "ingamemenu"
+script/source = "extends ColorRect
+
+
+func _input(event: InputEvent) -> void:
+	if event.is_action_pressed(\"show_ingame_menu\"):
+		if visible:
+			get_tree().paused = false
+			hide()
+		else:
+			get_tree().paused = true
+			show()
+
+
+func _on_resume_button_pressed() -> void:
+	%ButtonClickSound.play()
+	get_tree().paused = false
+	hide()
+
+
+func _on_menu_button_pressed() -> void:
+	get_tree().paused = false
+	get_tree().change_scene_to_file.call_deferred(\"res://main.tscn\")
+
+
+func _on_resume_button_mouse_entered() -> void:
+	%ButtonHoverSound.play()
+
+
+func _on_menu_button_mouse_entered() -> void:
+	%ButtonHoverSound.play()
+
+
+func _on_in_game_menu_button_pressed() -> void:
+	get_tree().paused = true
+	show()
+
+
+func _on_tutorial_closed_pressed() -> void:
+	get_tree().paused = false
+	%Tutorial.hide()
+
+
+func _on_static_table_side_scroll_clicked() -> void:
+	get_tree().paused = true
+	%Tutorial.show()
+"
+
+[sub_resource type="GDScript" id="GDScript_5dwtk"]
+resource_name = "sfsdf"
+script/source = "extends AudioStreamPlayer
+
+
+func _on_finished() -> void:
+	play()
+"
+
+[sub_resource type="GDScript" id="GDScript_uvu22"]
+script/source = "extends AudioStreamPlayer
+
+
+func _on_turst_button_mouse_entered() -> void:
+	play()
+
+
+func _on_dont_trust_button_mouse_entered() -> void:
+	play()
+
+
+func _on_play_token_button_mouse_entered() -> void:
+	play()
+
+
+func _on_save_token_button_mouse_entered() -> void:
+	play()
+
+
+func _on_fix_position_button_mouse_entered() -> void:
+	play()
+"
+
+[node name="BattleScene" type="Node" unique_id=231584029]
+
+[node name="Beauty" type="Control" parent="." unique_id=1257431824]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BG" type="TextureRect" parent="Beauty" unique_id=504976355]
+self_modulate = Color(0.32, 0.32, 0.32, 1)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -6.0
+offset_top = -282.0
+offset_right = -6.0
+offset_bottom = 176.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_qf1w8")
+
+[node name="Table" type="TextureRect" parent="Beauty" unique_id=1942591418]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -235.0
+offset_bottom = -55.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_70ma3")
+stretch_mode = 2
+
+[node name="KingImage" type="AnimatedSprite2D" parent="Beauty" unique_id=1180968255]
+unique_name_in_owner = true
+position = Vector2(301, -229)
+sprite_frames = SubResource("SpriteFrames_tlc6o")
+autoplay = "default"
+frame_progress = 0.6947757
+centered = false
+
+[node name="KingSpeechBubble" type="TextureRect" parent="Beauty/KingImage" unique_id=43216063]
+unique_name_in_owner = true
+anchors_preset = -1
+anchor_left = 0.69500005
+anchor_top = 0.179
+anchor_right = 1.3720001
+anchor_bottom = 0.77400005
+offset_left = -27.12503
+offset_top = -26.569
+offset_right = -28.100037
+offset_bottom = 4.8859863
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("10_mo83t")
+
+[node name="MarginContainer" type="MarginContainer" parent="Beauty/KingImage/KingSpeechBubble" unique_id=822007337]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="EnemyReplicaLabel" type="Label" parent="Beauty/KingImage/KingSpeechBubble/MarginContainer" unique_id=693420657]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 1
+text = "HAHA"
+label_settings = SubResource("LabelSettings_70ma3")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="KingCards" type="TextureRect" parent="Beauty" unique_id=114842957]
+layout_mode = 0
+offset_left = 1040.0
+offset_top = 125.0
+offset_right = 1179.0
+offset_bottom = 257.0
+texture = ExtResource("4_leyvj")
+
+[node name="PlayerCards" type="TextureRect" parent="Beauty" unique_id=1166943888]
+layout_mode = 0
+offset_left = 1007.0
+offset_top = 445.0
+offset_right = 1165.0
+offset_bottom = 595.0
+texture = ExtResource("5_tlc6o")
+
+[node name="MainLayout" type="VBoxContainer" parent="." unique_id=1536701349]
+unique_name_in_owner = true
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="GameField" type="MarginContainer" parent="MainLayout" unique_id=746107196]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+script = SubResource("GDScript_slk4e")
+max_cards = 7
+player_max_mind = 50
+enemy_max_mind = 50
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MainLayout/GameField" unique_id=2129702362]
+layout_mode = 2
+
+[node name="EnemyMarginContainer" type="MarginContainer" parent="MainLayout/GameField/VBoxContainer" unique_id=1235627777]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="EnemyHand" parent="MainLayout/GameField/VBoxContainer/EnemyMarginContainer" unique_id=123451831 instance=ExtResource("4_cgg1q")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 210)
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MainLayout/GameField/VBoxContainer" unique_id=210902030]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="MindValueBar" parent="MainLayout/GameField/VBoxContainer/HBoxContainer" unique_id=727966596 instance=ExtResource("4_jc1be")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+
+[node name="PlayingTable" parent="MainLayout/GameField/VBoxContainer/HBoxContainer" unique_id=975817498 instance=ExtResource("4_wds08")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="StaticTableSide" parent="MainLayout/GameField/VBoxContainer/HBoxContainer" unique_id=22668249 instance=ExtResource("2_1b3d5")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(400, 0)
+layout_mode = 2
+
+[node name="PlayerMarginContainer" type="MarginContainer" parent="MainLayout/GameField/VBoxContainer" unique_id=957718571]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MainLayout/GameField/VBoxContainer/PlayerMarginContainer" unique_id=889744389]
+layout_mode = 2
+
+[node name="PlayerHand" parent="MainLayout/GameField/VBoxContainer/PlayerMarginContainer/HBoxContainer" unique_id=1833258535 instance=ExtResource("2_atual")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 210)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MainLayout/GameField/VBoxContainer/PlayerMarginContainer/HBoxContainer" unique_id=846569273]
+layout_mode = 2
+alignment = 1
+
+[node name="FixPositionButton" type="Button" parent="MainLayout/GameField/VBoxContainer/PlayerMarginContainer/HBoxContainer/VBoxContainer" unique_id=1507532880]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = " Фикс "
+
+[node name="MainCamera" type="Camera2D" parent="." unique_id=741138104]
+unique_name_in_owner = true
+position = Vector2(639, 81)
+position_smoothing_enabled = true
+script = SubResource("GDScript_70ma3")
+
+[node name="PlayerTurnCameraMarker" type="Marker2D" parent="." unique_id=364386975]
+unique_name_in_owner = true
+position = Vector2(640, 826)
+script = SubResource("GDScript_wds08")
+
+[node name="EnemyTurnCameraMarker" type="Marker2D" parent="." unique_id=2076528890]
+unique_name_in_owner = true
+position = Vector2(640, -106)
+script = SubResource("GDScript_qf1w8")
+
+[node name="EnemyReplicaCameraMarker" type="Marker2D" parent="." unique_id=531442382]
+unique_name_in_owner = true
+position = Vector2(640, -228)
+script = SubResource("GDScript_leyvj")
+
+[node name="MessageLayer" type="CanvasLayer" parent="." unique_id=1667078888]
+layer = 2
+
+[node name="ShadingRect" type="ColorRect" parent="MessageLayer" unique_id=645226146]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.6509804)
+
+[node name="CenterContainer" type="CenterContainer" parent="MessageLayer" unique_id=1840380663]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="MessageLabel" type="Label" parent="MessageLayer/CenterContainer" unique_id=1867733253]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(1000, 0)
+layout_mode = 2
+text = "Select card"
+label_settings = SubResource("LabelSettings_tlc6o")
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="NewTokenDialog" type="CenterContainer" parent="MessageLayer" unique_id=306000462]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MessageLayer/NewTokenDialog" unique_id=526978572]
+layout_mode = 2
+
+[node name="TokenDialogLabel" type="Label" parent="MessageLayer/NewTokenDialog/VBoxContainer" unique_id=958360823]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(900, 0)
+layout_mode = 2
+label_settings = SubResource("LabelSettings_wds08")
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MessageLayer/NewTokenDialog/VBoxContainer" unique_id=1846587806]
+layout_mode = 2
+theme_override_constants/separation = 30
+alignment = 1
+
+[node name="PlayTokenButton" type="Button" parent="MessageLayer/NewTokenDialog/VBoxContainer/HBoxContainer" unique_id=1697929673]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = " Сыграть "
+
+[node name="SaveTokenButton" type="Button" parent="MessageLayer/NewTokenDialog/VBoxContainer/HBoxContainer" unique_id=117724554]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = " Сохранить "
+
+[node name="KingFixDialog" type="CenterContainer" parent="MessageLayer" unique_id=913245335]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MessageLayer/KingFixDialog" unique_id=1106305493]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MessageLayer/KingFixDialog/VBoxContainer" unique_id=2131819790]
+custom_minimum_size = Vector2(900, 0)
+layout_mode = 2
+text = "Король объявил о своей победе в этом туре.
+Веришь?"
+label_settings = SubResource("LabelSettings_qf1w8")
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MessageLayer/KingFixDialog/VBoxContainer" unique_id=2131876436]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 15
+alignment = 1
+
+[node name="TurstButton" type="Button" parent="MessageLayer/KingFixDialog/VBoxContainer/VBoxContainer" unique_id=159865832]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = " Верю! (получить базовый урон) "
+
+[node name="DontTrustButton" type="Button" parent="MessageLayer/KingFixDialog/VBoxContainer/VBoxContainer" unique_id=366239452]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = " Не верю! (вскрыть ситуацию) "
+
+[node name="InGameMenuButton" type="Button" parent="MessageLayer" unique_id=1161805649]
+offset_left = 1108.0
+offset_top = -13.0
+offset_right = 1275.0
+offset_bottom = 87.0
+text = " Меню "
+
+[node name="InGameMenu" type="ColorRect" parent="MessageLayer" unique_id=2057208443]
+unique_name_in_owner = true
+process_mode = 3
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+script = SubResource("GDScript_30cnc")
+
+[node name="TextureRect" type="TextureRect" parent="MessageLayer/InGameMenu" unique_id=1347049041]
+self_modulate = Color(0.64, 0.64, 0.64, 1)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_qf1w8")
+
+[node name="CenterContainer" type="CenterContainer" parent="MessageLayer/InGameMenu" unique_id=1083965201]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MessageLayer/InGameMenu/CenterContainer" unique_id=1791888409]
+layout_mode = 2
+
+[node name="ResumeButton" type="Button" parent="MessageLayer/InGameMenu/CenterContainer/VBoxContainer" unique_id=69118880]
+layout_mode = 2
+text = " Продложить "
+
+[node name="MenuButton" type="Button" parent="MessageLayer/InGameMenu/CenterContainer/VBoxContainer" unique_id=2143579973]
+layout_mode = 2
+text = " Завершить игру "
+
+[node name="Tutorial" parent="MessageLayer" unique_id=290295233 instance=ExtResource("18_tcj13")]
+unique_name_in_owner = true
+process_mode = 3
+visible = false
+
+[node name="BattleMusic" type="AudioStreamPlayer" parent="." unique_id=2038765295]
+stream = ExtResource("18_dqjak")
+volume_db = -6.81
+autoplay = true
+script = SubResource("GDScript_5dwtk")
+
+[node name="FixSound" type="AudioStreamPlayer" parent="." unique_id=1225007929]
+unique_name_in_owner = true
+stream = ExtResource("19_y2gx0")
+
+[node name="BagSound" type="AudioStreamPlayer" parent="." unique_id=1360708899]
+unique_name_in_owner = true
+stream = ExtResource("20_03krc")
+volume_db = -7.317
+
+[node name="TokenPlaySound" type="AudioStreamPlayer" parent="." unique_id=216219745]
+unique_name_in_owner = true
+stream = ExtResource("21_r3d0c")
+volume_db = -9.463
+
+[node name="NewTourSound" type="AudioStreamPlayer" parent="." unique_id=679198927]
+unique_name_in_owner = true
+stream = ExtResource("22_03krc")
+
+[node name="CardPlaySound" type="AudioStreamPlayer" parent="." unique_id=241605244]
+unique_name_in_owner = true
+stream = ExtResource("23_r3d0c")
+volume_db = -8.884
+
+[node name="HiddenCardSelectingSound" type="AudioStreamPlayer" parent="." unique_id=848699011]
+unique_name_in_owner = true
+stream = ExtResource("24_n3bwg")
+volume_db = -13.374
+
+[node name="ButtonHoverSound" type="AudioStreamPlayer" parent="." unique_id=1754460751]
+unique_name_in_owner = true
+stream = ExtResource("25_pqas1")
+script = SubResource("GDScript_uvu22")
+
+[node name="KingDamageSound" type="AudioStreamPlayer" parent="." unique_id=1654598882]
+unique_name_in_owner = true
+stream = ExtResource("26_0a0v5")
+volume_db = -7.776
+
+[node name="PlayerDamageSound" type="AudioStreamPlayer" parent="." unique_id=287752112]
+unique_name_in_owner = true
+stream = ExtResource("27_uvu22")
+volume_db = -8.748
+
+[node name="ButtonClickSound" type="AudioStreamPlayer" parent="." unique_id=1316560869]
+unique_name_in_owner = true
+stream = ExtResource("28_30cnc")
+volume_db = -9.827
+
+[connection signal="get_token_requested" from="MainLayout/GameField/VBoxContainer/HBoxContainer/StaticTableSide" to="MainLayout/GameField" method="_on_static_table_side_get_token_requested"]
+[connection signal="scroll_clicked" from="MainLayout/GameField/VBoxContainer/HBoxContainer/StaticTableSide" to="MessageLayer/InGameMenu" method="_on_static_table_side_scroll_clicked"]
+[connection signal="card_clicked" from="MainLayout/GameField/VBoxContainer/PlayerMarginContainer/HBoxContainer/PlayerHand" to="MainLayout/GameField" method="_on_player_hand_card_clicked"]
+[connection signal="token_play_request" from="MainLayout/GameField/VBoxContainer/PlayerMarginContainer/HBoxContainer/PlayerHand" to="MainLayout/GameField" method="_on_player_hand_token_play_request"]
+[connection signal="mouse_entered" from="MainLayout/GameField/VBoxContainer/PlayerMarginContainer/HBoxContainer/VBoxContainer/FixPositionButton" to="ButtonHoverSound" method="_on_fix_position_button_mouse_entered"]
+[connection signal="pressed" from="MainLayout/GameField/VBoxContainer/PlayerMarginContainer/HBoxContainer/VBoxContainer/FixPositionButton" to="MainLayout/GameField" method="_on_fix_position_button_pressed"]
+[connection signal="mouse_entered" from="MessageLayer/NewTokenDialog/VBoxContainer/HBoxContainer/PlayTokenButton" to="ButtonHoverSound" method="_on_play_token_button_mouse_entered"]
+[connection signal="pressed" from="MessageLayer/NewTokenDialog/VBoxContainer/HBoxContainer/PlayTokenButton" to="MainLayout/GameField" method="_on_play_token_button_pressed"]
+[connection signal="mouse_entered" from="MessageLayer/NewTokenDialog/VBoxContainer/HBoxContainer/SaveTokenButton" to="ButtonHoverSound" method="_on_save_token_button_mouse_entered"]
+[connection signal="pressed" from="MessageLayer/NewTokenDialog/VBoxContainer/HBoxContainer/SaveTokenButton" to="MainLayout/GameField" method="_on_save_token_button_pressed"]
+[connection signal="mouse_entered" from="MessageLayer/KingFixDialog/VBoxContainer/VBoxContainer/TurstButton" to="ButtonHoverSound" method="_on_turst_button_mouse_entered"]
+[connection signal="pressed" from="MessageLayer/KingFixDialog/VBoxContainer/VBoxContainer/TurstButton" to="MainLayout/GameField" method="_on_turst_button_pressed"]
+[connection signal="mouse_entered" from="MessageLayer/KingFixDialog/VBoxContainer/VBoxContainer/DontTrustButton" to="ButtonHoverSound" method="_on_dont_trust_button_mouse_entered"]
+[connection signal="pressed" from="MessageLayer/KingFixDialog/VBoxContainer/VBoxContainer/DontTrustButton" to="MainLayout/GameField" method="_on_dont_trust_button_pressed"]
+[connection signal="pressed" from="MessageLayer/InGameMenuButton" to="MessageLayer/InGameMenu" method="_on_in_game_menu_button_pressed"]
+[connection signal="mouse_entered" from="MessageLayer/InGameMenu/CenterContainer/VBoxContainer/ResumeButton" to="MessageLayer/InGameMenu" method="_on_resume_button_mouse_entered"]
+[connection signal="pressed" from="MessageLayer/InGameMenu/CenterContainer/VBoxContainer/ResumeButton" to="MessageLayer/InGameMenu" method="_on_resume_button_pressed"]
+[connection signal="mouse_entered" from="MessageLayer/InGameMenu/CenterContainer/VBoxContainer/MenuButton" to="MessageLayer/InGameMenu" method="_on_menu_button_mouse_entered"]
+[connection signal="pressed" from="MessageLayer/InGameMenu/CenterContainer/VBoxContainer/MenuButton" to="MessageLayer/InGameMenu" method="_on_menu_button_pressed"]
+[connection signal="closed_pressed" from="MessageLayer/Tutorial" to="MessageLayer/InGameMenu" method="_on_tutorial_closed_pressed"]
+[connection signal="finished" from="BattleMusic" to="BattleMusic" method="_on_finished"]

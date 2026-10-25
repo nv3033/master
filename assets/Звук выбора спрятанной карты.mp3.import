@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://bp515gpn61c0e"
+path="res://.godot/imported/Звук выбора спрятанной карты.mp3-eb93719eb80d646540ac220e57527591.mp3str"
+
+[deps]
+
+source_file="res://assets/Звук выбора спрятанной карты.mp3"
+dest_files=["res://.godot/imported/Звук выбора спрятанной карты.mp3-eb93719eb80d646540ac220e57527591.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

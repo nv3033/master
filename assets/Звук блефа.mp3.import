@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://bjrf0bjihmqwx"
+path="res://.godot/imported/Звук блефа.mp3-faca83b687d324a01c6ade0c604b199b.mp3str"
+
+[deps]
+
+source_file="res://assets/Звук блефа.mp3"
+dest_files=["res://.godot/imported/Звук блефа.mp3-faca83b687d324a01c6ade0c604b199b.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

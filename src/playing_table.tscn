@@ -1,0 +1,65 @@
+[gd_scene format=3 uid="uid://br7wds4vld8ha"]
+
+[ext_resource type="Script" uid="uid://bshxhqdngam87" path="res://src/playing_table.gd" id="1_kwgb5"]
+[ext_resource type="PackedScene" uid="uid://dee22sl7qmrn0" path="res://src/token_placeholder.tscn" id="2_7ere7"]
+[ext_resource type="PackedScene" uid="uid://v0s23bdse56a" path="res://src/card_placeholder.tscn" id="3_wcd7u"]
+
+[node name="MarginContainer" type="MarginContainer" unique_id=975817498]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_kwgb5")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=508488337]
+layout_mode = 2
+
+[node name="TableContainer" type="HBoxContainer" parent="VBoxContainer" unique_id=190047697]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/TableContainer" unique_id=1149690960]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="EnemyTokens" type="HBoxContainer" parent="VBoxContainer/TableContainer/VBoxContainer" unique_id=342408121]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 10
+
+[node name="TokenPlaceholder" parent="VBoxContainer/TableContainer/VBoxContainer/EnemyTokens" unique_id=13596352 instance=ExtResource("2_7ere7")]
+layout_mode = 2
+
+[node name="EnemyPlayedCards" type="HBoxContainer" parent="VBoxContainer/TableContainer/VBoxContainer" unique_id=2105619186]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 10
+
+[node name="CardPlaceholder" parent="VBoxContainer/TableContainer/VBoxContainer/EnemyPlayedCards" unique_id=1064578066 instance=ExtResource("3_wcd7u")]
+layout_mode = 2
+
+[node name="GeneralTokens" type="HBoxContainer" parent="VBoxContainer/TableContainer/VBoxContainer" unique_id=1161068952]
+unique_name_in_owner = true
+layout_mode = 2
+alignment = 1
+
+[node name="TokenPlaceholder" parent="VBoxContainer/TableContainer/VBoxContainer/GeneralTokens" unique_id=1034266244 instance=ExtResource("2_7ere7")]
+layout_mode = 2
+
+[node name="PlayerPlayedCards" type="HBoxContainer" parent="VBoxContainer/TableContainer/VBoxContainer" unique_id=1408492748]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 2
+
+[node name="CardPlaceholder" parent="VBoxContainer/TableContainer/VBoxContainer/PlayerPlayedCards" unique_id=1691669451 instance=ExtResource("3_wcd7u")]
+layout_mode = 2
+
+[node name="PlayerTokens" type="HBoxContainer" parent="VBoxContainer/TableContainer/VBoxContainer" unique_id=385856699]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 2
+
+[node name="TokenPlaceholder" parent="VBoxContainer/TableContainer/VBoxContainer/PlayerTokens" unique_id=1825878121 instance=ExtResource("2_7ere7")]
+layout_mode = 2

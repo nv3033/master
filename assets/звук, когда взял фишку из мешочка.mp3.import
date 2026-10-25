@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://d2t3rkh1hbr4c"
+path="res://.godot/imported/звук, когда взял фишку из мешочка.mp3-4b0ebcce7e6a6bf3d435259fac4bd145.mp3str"
+
+[deps]
+
+source_file="res://assets/звук, когда взял фишку из мешочка.mp3"
+dest_files=["res://.godot/imported/звук, когда взял фишку из мешочка.mp3-4b0ebcce7e6a6bf3d435259fac4bd145.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

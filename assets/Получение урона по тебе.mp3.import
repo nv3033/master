@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://xkiarftkuqbq"
+path="res://.godot/imported/Получение урона по тебе.mp3-4ea1aa93d15e553ac20344bf08c46baf.mp3str"
+
+[deps]
+
+source_file="res://assets/Получение урона по тебе.mp3"
+dest_files=["res://.godot/imported/Получение урона по тебе.mp3-4ea1aa93d15e553ac20344bf08c46baf.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

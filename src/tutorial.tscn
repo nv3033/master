@@ -1,0 +1,285 @@
+[gd_scene format=3 uid="uid://btvht5lu6htlj"]
+
+[ext_resource type="Texture2D" uid="uid://563y6nnm0841" path="res://assets/Фон.png" id="1_j0ecg"]
+[ext_resource type="AudioStream" uid="uid://daf5ibsxid4ee" path="res://assets/нажатие кнопки.mp3" id="2_ui2h3"]
+[ext_resource type="AudioStream" uid="uid://8liulmbcslcj" path="res://assets/Звук наведения на кнопку.mp3" id="3_dtpc1"]
+
+[sub_resource type="GDScript" id="GDScript_j0ecg"]
+script/source = "extends Control
+
+signal closed_pressed
+
+
+func _on_back_button_pressed() -> void:
+	%ButtonPressedSound.play()
+	%NextButton.disabled = false
+	%TabContainer.current_tab -= 1
+	if %TabContainer.current_tab == 0:
+		%BackButton.disabled = true
+
+
+func _on_next_button_pressed() -> void:
+	%ButtonPressedSound.play()
+	%BackButton.disabled = false
+	%TabContainer.current_tab += 1
+	if %TabContainer.current_tab == %TabContainer.get_child_count() - 1:
+		%NextButton.disabled = true
+
+
+func _on_close_button_pressed() -> void:
+	closed_pressed.emit()
+	%ButtonPressedSound.play()
+
+
+func _on_close_button_mouse_entered() -> void:
+	%ButtonHoverSound.play()
+
+
+func _on_back_button_mouse_entered() -> void:
+	if not %BackButton.disabled:
+		%ButtonHoverSound.play()
+
+
+func _on_next_button_mouse_entered() -> void:
+	if not %NextButton.disabled:
+		%ButtonHoverSound.play()
+"
+
+[sub_resource type="LabelSettings" id="LabelSettings_0n21e"]
+font_size = 50
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_j0ecg"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_0n21e"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ui2h3"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dtpc1"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_al8ge"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_j8yoj"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5hqtf"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_j0ecg"]
+font_size = 50
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_ui2h3"]
+font_size = 50
+font_color = Color(1, 0.66999996, 0.66999996, 1)
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+
+[node name="Tutorial" type="Control" unique_id=2136983545]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = SubResource("GDScript_j0ecg")
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1658529477]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TextureRect" type="TextureRect" parent="MarginContainer" unique_id=678290636]
+self_modulate = Color(0.55, 0.55, 0.55, 1)
+layout_mode = 2
+texture = ExtResource("1_j0ecg")
+
+[node name="Label" type="Label" parent="MarginContainer" unique_id=213068743]
+layout_mode = 2
+size_flags_vertical = 0
+text = "
+
+Записки предшественников"
+label_settings = SubResource("LabelSettings_0n21e")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TabContainer" type="TabContainer" parent="MarginContainer" unique_id=1220279536]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_j0ecg")
+theme_override_styles/tabbar_background = SubResource("StyleBoxEmpty_0n21e")
+theme_override_styles/tab_unselected = SubResource("StyleBoxEmpty_ui2h3")
+theme_override_styles/tab_hovered = SubResource("StyleBoxEmpty_dtpc1")
+theme_override_styles/tab_selected = SubResource("StyleBoxEmpty_al8ge")
+theme_override_styles/tab_disabled = SubResource("StyleBoxEmpty_j8yoj")
+theme_override_styles/tab_focus = SubResource("StyleBoxEmpty_5hqtf")
+current_tab = 0
+tabs_visible = false
+
+[node name="Label" type="Label" parent="MarginContainer/TabContainer" unique_id=971190663]
+layout_mode = 2
+text = "Рассудок — это твоё здоровье. Урон не лечится. Упадёт до нуля — ты труп.
+Я не шучу. Я сидел. Я знаю.
+"
+label_settings = SubResource("LabelSettings_j0ecg")
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_tab_index = 0
+
+[node name="Label2" type="Label" parent="MarginContainer/TabContainer" unique_id=399684725]
+visible = false
+layout_mode = 2
+text = "Тебе дадут 8 карт и 3 начальных жетона.
+Порядок карт на столе важен.
+ Некоторые жетоны смотрят на первую 
+и последнюю — не выкладывай как попало.
+"
+label_settings = SubResource("LabelSettings_j0ecg")
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_tab_index = 1
+
+[node name="Label3" type="Label" parent="MarginContainer/TabContainer" unique_id=1897002311]
+visible = false
+layout_mode = 2
+text = "Выбери две скрытые карты. Две, не одну.
+Это твой тайный козырь. Жетоны скажут, когда они выигрывают. 
+До вскрытия их не видит никто. Даже мастер.
+"
+label_settings = SubResource("LabelSettings_j0ecg")
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_tab_index = 2
+
+[node name="Label4" type="Label" parent="MarginContainer/TabContainer" unique_id=1353533897]
+visible = false
+layout_mode = 2
+text = "За ход — одно действие. Всего три:
+разыграть карту,
+взять жетон из мешочка и либо разыграть сразу, либо отложить в запас,
+разыграть жетон из запаса.
+Не пытайся сделать два. Мастер не позволит.
+"
+label_settings = SubResource("LabelSettings_j0ecg")
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_tab_index = 3
+
+[node name="Label5" type="Label" parent="MarginContainer/TabContainer" unique_id=1031708335]
+visible = false
+layout_mode = 2
+text = "Смотри на карты мастера. Часть жетонов сравнивает твои карты 
+с его номиналами и мастями.
+Если не следишь — он обыграет тебя на ровном месте.
+"
+label_settings = SubResource("LabelSettings_j0ecg")
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_tab_index = 4
+
+[node name="Label6" type="Label" parent="MarginContainer/TabContainer" unique_id=2059410168]
+visible = false
+layout_mode = 2
+text = "Жетон — это условие. Он говорит, когда твоя скрытая карта выигрывает.
+Есть три типа:
+— действуют на одну карту,
+— действуют только на твои или только на вражеские,
+— действуют на все карты.
+Запомни это. Я забыл — и проиграл.
+"
+label_settings = SubResource("LabelSettings_j0ecg")
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_tab_index = 5
+
+[node name="Label7" type="Label" parent="MarginContainer/TabContainer" unique_id=1540098479]
+visible = false
+layout_mode = 2
+text = "Условие выполнено — но это ещё не победа.
+Объявить победу можно только в начале своего хода.
+Я объявил посреди хода. Мастер рассмеялся.
+"
+label_settings = SubResource("LabelSettings_j0ecg")
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_tab_index = 6
+
+[node name="Label8" type="Label" parent="MarginContainer/TabContainer" unique_id=1603973698]
+visible = false
+layout_mode = 2
+text = "Ты объявил победу.
+Мастер либо поверит — и ты забираешь урон.
+Либо не поверит — и будет вскрытие.
+Он редко верит.
+"
+label_settings = SubResource("LabelSettings_j0ecg")
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_tab_index = 7
+
+[node name="Label9" type="Label" parent="MarginContainer/TabContainer" unique_id=1441151480]
+visible = false
+layout_mode = 2
+text = "Если победа подтвердилась — урон получает мастер.
+Если нет — урон получаешь ты.
+Проверяй всё дважды. Трижды. У меня оставалось 4 рассудка.
+"
+label_settings = SubResource("LabelSettings_j0ecg")
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_tab_index = 8
+
+[node name="Label11" type="Label" parent="MarginContainer/TabContainer" unique_id=338843090]
+visible = false
+layout_mode = 2
+text = "Не повторяй наших ошибок..."
+label_settings = SubResource("LabelSettings_ui2h3")
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_tab_index = 9
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer" unique_id=780779818]
+layout_mode = 2
+theme_override_constants/margin_bottom = 100
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/MarginContainer" unique_id=580079179]
+layout_mode = 2
+size_flags_vertical = 8
+alignment = 1
+
+[node name="BackButton" type="Button" parent="MarginContainer/MarginContainer/HBoxContainer" unique_id=904035517]
+unique_name_in_owner = true
+layout_mode = 2
+disabled = true
+text = " Назад "
+
+[node name="NextButton" type="Button" parent="MarginContainer/MarginContainer/HBoxContainer" unique_id=1687238644]
+unique_name_in_owner = true
+layout_mode = 2
+text = " Далее "
+
+[node name="CloseButton" type="Button" parent="." unique_id=702021729]
+layout_mode = 0
+offset_left = 1073.0
+offset_top = 13.0
+offset_right = 1250.0
+offset_bottom = 113.0
+text = "Закрыть "
+
+[node name="ButtonPressedSound" type="AudioStreamPlayer" parent="." unique_id=953444282]
+unique_name_in_owner = true
+stream = ExtResource("2_ui2h3")
+volume_db = -11.21
+
+[node name="ButtonHoverSound" type="AudioStreamPlayer" parent="." unique_id=859936174]
+unique_name_in_owner = true
+stream = ExtResource("3_dtpc1")
+
+[connection signal="mouse_entered" from="MarginContainer/MarginContainer/HBoxContainer/BackButton" to="." method="_on_back_button_mouse_entered"]
+[connection signal="pressed" from="MarginContainer/MarginContainer/HBoxContainer/BackButton" to="." method="_on_back_button_pressed"]
+[connection signal="mouse_entered" from="MarginContainer/MarginContainer/HBoxContainer/NextButton" to="." method="_on_next_button_mouse_entered"]
+[connection signal="pressed" from="MarginContainer/MarginContainer/HBoxContainer/NextButton" to="." method="_on_next_button_pressed"]
+[connection signal="mouse_entered" from="CloseButton" to="." method="_on_close_button_mouse_entered"]
+[connection signal="pressed" from="CloseButton" to="." method="_on_close_button_pressed"]

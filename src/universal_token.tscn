@@ -1,0 +1,77 @@
+[gd_scene format=3 uid="uid://chd25416xbshd"]
+
+[ext_resource type="Texture2D" uid="uid://bk6g6i567pnja" path="res://icon.svg" id="1_dgrab"]
+[ext_resource type="Shader" uid="uid://c8dhw2m6rwbm8" path="res://src/outline.gdshader" id="1_m63gm"]
+[ext_resource type="AudioStream" uid="uid://qsx38stkis7q" path="res://assets/Звук когда навёл мышку на фишку.mp3" id="3_81fo6"]
+
+[sub_resource type="GDScript" id="GDScript_atual"]
+resource_name = "universal_token"
+script/source = "extends RuleToken
+
+
+func _ready() -> void:
+	_on_visible_state_changed()
+
+
+@warning_ignore(\"unused_parameter\")
+func _process(delta: float) -> void:
+	if not responsive:
+		$TextureRect.material.set_shader_parameter(\"width\", 0.0)
+
+
+func _on_mouse_entered() -> void:
+	if responsive:
+		$TextureRect.material.set_shader_parameter(\"width\", 7.0)
+		%HoverSound.play()
+
+
+func _on_mouse_exited() -> void:
+	if responsive:
+		$TextureRect.material.set_shader_parameter(\"width\", 0.0)
+
+
+func _on_visible_state_changed() -> void:
+	if visible_state == VisibleState.Visible:
+		$TextureRect.texture = setup.image()
+	else:
+		$TextureRect.texture = preload(\"res://assets/Tokens/Рубашка.png\")
+"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_djbvk"]
+resource_local_to_scene = true
+shader = ExtResource("1_m63gm")
+shader_parameter/color = Color(1, 1, 1, 1)
+shader_parameter/width = 0.0
+shader_parameter/pattern = 1
+shader_parameter/inside = true
+shader_parameter/add_margins = true
+
+[node name="UniversalToken" type="Control" unique_id=1636022348]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = SubResource("GDScript_atual")
+
+[node name="TextureRect" type="TextureRect" parent="." unique_id=1982806208]
+material = SubResource("ShaderMaterial_djbvk")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_dgrab")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HoverSound" type="AudioStreamPlayer" parent="." unique_id=1418971616]
+unique_name_in_owner = true
+stream = ExtResource("3_81fo6")
+volume_db = -9.037
+
+[connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="." to="." method="_on_mouse_exited"]

@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://iau8uknfhjkx"
+path="res://.godot/imported/Разыгрывание карты.mp3-9c8d8a24571c0146cda189a61fa00257.mp3str"
+
+[deps]
+
+source_file="res://assets/Разыгрывание карты.mp3"
+dest_files=["res://.godot/imported/Разыгрывание карты.mp3-9c8d8a24571c0146cda189a61fa00257.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0.0
+bpm=0.0
+beat_count=0
+bar_beats=4

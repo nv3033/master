@@ -1,0 +1,103 @@
+[gd_scene format=3 uid="uid://bpot0bd5tofge"]
+
+[ext_resource type="PackedScene" uid="uid://v0s23bdse56a" path="res://src/card_placeholder.tscn" id="1_tt5la"]
+[ext_resource type="Script" uid="uid://bw3sihfajhpxr" path="res://src/static_table_side.gd" id="1_ydtrd"]
+[ext_resource type="Shader" uid="uid://c8dhw2m6rwbm8" path="res://src/outline.gdshader" id="3_33pn2"]
+[ext_resource type="Texture2D" uid="uid://dyoci2l1rphg0" path="res://assets/Мешок_1.png" id="4_6ntuq"]
+[ext_resource type="Texture2D" uid="uid://5kku1miiu2ou" path="res://assets/Мешок_2.png" id="5_r8kw7"]
+[ext_resource type="Texture2D" uid="uid://bploglj47nsa1" path="res://assets/Мешок пустой.png" id="6_r8kw7"]
+[ext_resource type="AudioStream" uid="uid://8liulmbcslcj" path="res://assets/Звук наведения на кнопку.mp3" id="7_3qd5e"]
+[ext_resource type="Texture2D" uid="uid://c65wabefhso04" path="res://assets/Свиток 11.png" id="7_4tegs"]
+[ext_resource type="Texture2D" uid="uid://dw1ovp5tw882y" path="res://assets/Свиток 22.png" id="8_0yjk1"]
+[ext_resource type="AudioStream" uid="uid://btrowmgec2dgt" path="res://assets/Раскрытие свитка.wav" id="10_0yjk1"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_4tegs"]
+shader = ExtResource("3_33pn2")
+shader_parameter/color = Color(1, 1, 1, 1)
+shader_parameter/width = 5.0000002375
+shader_parameter/pattern = 0
+shader_parameter/inside = false
+shader_parameter/add_margins = true
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_2b18q"]
+shader = ExtResource("3_33pn2")
+shader_parameter/color = Color(1, 1, 1, 1)
+shader_parameter/width = 5.0000002375
+shader_parameter/pattern = 0
+shader_parameter/inside = false
+shader_parameter/add_margins = true
+
+[node name="StaticTableSide" type="Control" unique_id=22668249]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_ydtrd")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1375505788]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="EnemyHiddenCards" type="HBoxContainer" parent="VBoxContainer" unique_id=906001946]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = -37
+
+[node name="CardPlaceholder" parent="VBoxContainer/EnemyHiddenCards" unique_id=1064578066 instance=ExtResource("1_tt5la")]
+layout_mode = 2
+
+[node name="CenterContainer" type="CenterContainer" parent="VBoxContainer" unique_id=1187928560]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/CenterContainer" unique_id=438466957]
+layout_mode = 2
+
+[node name="ScrollButton" type="TextureButton" parent="VBoxContainer/CenterContainer/HBoxContainer" unique_id=1888064872]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_4tegs")
+layout_mode = 2
+texture_normal = ExtResource("7_4tegs")
+texture_hover = ExtResource("8_0yjk1")
+
+[node name="GetTokenButton" type="TextureButton" parent="VBoxContainer/CenterContainer/HBoxContainer" unique_id=1962376310]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_2b18q")
+layout_mode = 2
+texture_normal = ExtResource("4_6ntuq")
+texture_pressed = ExtResource("5_r8kw7")
+texture_hover = ExtResource("5_r8kw7")
+texture_disabled = ExtResource("6_r8kw7")
+
+[node name="Control" type="Control" parent="VBoxContainer" unique_id=526054320]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+
+[node name="PlayerHiddenCards" type="HBoxContainer" parent="VBoxContainer" unique_id=1609932733]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = -37
+
+[node name="CardPlaceholder" parent="VBoxContainer/PlayerHiddenCards" unique_id=854714588 instance=ExtResource("1_tt5la")]
+layout_mode = 2
+
+[node name="BahHoverSound" type="AudioStreamPlayer" parent="." unique_id=701106665]
+unique_name_in_owner = true
+stream = ExtResource("7_3qd5e")
+
+[node name="ScrollSound" type="AudioStreamPlayer" parent="." unique_id=1278187885]
+unique_name_in_owner = true
+process_mode = 3
+stream = ExtResource("10_0yjk1")
+volume_db = -6.709
+
+[connection signal="mouse_entered" from="VBoxContainer/CenterContainer/HBoxContainer/ScrollButton" to="." method="_on_scroll_button_mouse_entered"]
+[connection signal="pressed" from="VBoxContainer/CenterContainer/HBoxContainer/ScrollButton" to="." method="_on_scroll_button_pressed"]
+[connection signal="mouse_entered" from="VBoxContainer/CenterContainer/HBoxContainer/GetTokenButton" to="." method="_on_get_token_button_mouse_entered"]
+[connection signal="pressed" from="VBoxContainer/CenterContainer/HBoxContainer/GetTokenButton" to="." method="_on_get_token_button_pressed"]

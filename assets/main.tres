@@ -1,0 +1,74 @@
+[gd_resource type="Theme" format=3 uid="uid://shh55oaf4ii4"]
+
+[ext_resource type="Texture2D" uid="uid://bs8wjuyocq31x" path="res://assets/кнопка_ховер.png" id="1_b0qwo"]
+[ext_resource type="Texture2D" uid="uid://4mldwfm1arno" path="res://assets/кнопка_отключена.png" id="1_lkubu"]
+[ext_resource type="FontFile" uid="uid://bl8j57mrapu8r" path="res://assets/ofont.ru_Jolly Lodger.ttf" id="1_p80i2"]
+[ext_resource type="Texture2D" uid="uid://dc4v2ubfgniyo" path="res://assets/кнопка_нормал.png" id="1_tbf4e"]
+[ext_resource type="Texture2D" uid="uid://dk03g0a6ayjl4" path="res://assets/кнопка_нажатая.png" id="2_d26kf"]
+[ext_resource type="Texture2D" uid="uid://dol1dc5jd071g" path="res://assets/Чекбокс нажат.png" id="4_52k6b"]
+[ext_resource type="Texture2D" uid="uid://c5nd35a5ikjs1" path="res://assets/Чекбокс отжат.png" id="5_rixum"]
+[ext_resource type="Texture2D" uid="uid://bqsgahx057p0m" path="res://assets/Ползунок.png" id="6_17qtp"]
+[ext_resource type="Texture2D" uid="uid://bgljxovg1rucp" path="res://assets/Шкала сон.png" id="7_lkubu"]
+[ext_resource type="Texture2D" uid="uid://0fkp6jihqe0e" path="res://assets/Шкала 2.png" id="7_r14xc"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_tdbd7"]
+texture = ExtResource("1_lkubu")
+texture_margin_left = 50.0
+texture_margin_top = 30.0
+texture_margin_right = 50.0
+texture_margin_bottom = 30.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_d26kf"]
+texture = ExtResource("1_b0qwo")
+texture_margin_left = 50.0
+texture_margin_top = 30.0
+texture_margin_right = 50.0
+texture_margin_bottom = 30.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_b0qwo"]
+texture = ExtResource("2_d26kf")
+texture_margin_left = 50.0
+texture_margin_top = 30.0
+texture_margin_right = 50.0
+texture_margin_bottom = 30.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_tlc6o"]
+texture = ExtResource("1_tbf4e")
+texture_margin_left = 50.0
+texture_margin_top = 30.0
+texture_margin_right = 50.0
+texture_margin_bottom = 30.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_qwehi"]
+texture = ExtResource("7_lkubu")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_8gif4"]
+texture = ExtResource("7_lkubu")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_lkubu"]
+texture = ExtResource("7_r14xc")
+texture_margin_left = 10.0
+texture_margin_top = 10.0
+texture_margin_right = 10.0
+texture_margin_bottom = 10.0
+
+[resource]
+default_font = ExtResource("1_p80i2")
+default_font_size = 32
+Button/colors/font_color = Color(0, 0, 0, 1)
+Button/colors/font_disabled_color = Color(0.23, 0.23, 0.23, 1)
+Button/colors/font_hover_color = Color(0.08, 0.08, 0.08, 1)
+Button/colors/font_hover_pressed_color = Color(0.37, 0.37, 0.37, 1)
+Button/colors/font_pressed_color = Color(0.19, 0.19, 0.19, 1)
+Button/styles/disabled = SubResource("StyleBoxTexture_tdbd7")
+Button/styles/hover = SubResource("StyleBoxTexture_d26kf")
+Button/styles/hover_pressed = SubResource("StyleBoxTexture_b0qwo")
+Button/styles/normal = SubResource("StyleBoxTexture_tlc6o")
+Button/styles/pressed = SubResource("StyleBoxTexture_b0qwo")
+CheckBox/icons/checked = ExtResource("4_52k6b")
+CheckBox/icons/unchecked = ExtResource("5_rixum")
+HSlider/icons/grabber = ExtResource("6_17qtp")
+HSlider/icons/grabber_highlight = ExtResource("6_17qtp")
+HSlider/styles/grabber_area = SubResource("StyleBoxTexture_qwehi")
+HSlider/styles/grabber_area_highlight = SubResource("StyleBoxTexture_8gif4")
+HSlider/styles/slider = SubResource("StyleBoxTexture_lkubu")

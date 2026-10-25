@@ -1,0 +1,40 @@
+[gd_scene format=3 uid="uid://cief1pem528sa"]
+
+[ext_resource type="Script" uid="uid://c0evx4kjn1iby" path="res://src/enemy_hand.gd" id="1_jo80q"]
+[ext_resource type="PackedScene" uid="uid://dee22sl7qmrn0" path="res://src/token_placeholder.tscn" id="1_unr05"]
+[ext_resource type="PackedScene" uid="uid://v0s23bdse56a" path="res://src/card_placeholder.tscn" id="2_ir7cn"]
+
+[node name="EnemyHand" type="Control" unique_id=123451831]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_jo80q")
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1480876552]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=2126939694]
+layout_mode = 2
+
+[node name="Tokens" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=659792881]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="TokenPlaceholder" parent="MarginContainer/VBoxContainer/Tokens" unique_id=13596352 instance=ExtResource("1_unr05")]
+layout_mode = 2
+
+[node name="Cards" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1687750349]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="CardPlaceholder" parent="MarginContainer/VBoxContainer/Cards" unique_id=1064578066 instance=ExtResource("2_ir7cn")]
+layout_mode = 2
