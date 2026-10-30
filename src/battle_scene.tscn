@@ -72,7 +72,838 @@ shadow_offset = Vector2(0, 0)
 
 [sub_resource type="GDScript" id="GDScript_slk4e"]
 resource_name = "battle_scene"
-script/source = "extends Node\n\nconst UNIVERSAL_CARD = preload(\"res://src/universal_card.tscn\")\nconst UNIVERSAL_TOKEN = preload(\"res://src/universal_token.tscn\")\n\nconst LOOSE_SCENE = preload(\"res://src/loose_scene.tscn\")\nconst WIN_SCENE = preload(\"res://src/win_scene.tscn\")\n\nconst CARDS : Array[PackedScene] = [\n\tpreload(\"res://src/universal_card.tscn\")\n]\n\nconst TOKENS : Array[PackedScene] = [\n\tpreload(\"res://src/universal_token.tscn\")\n]\n\nconst FIX_CHANCE_MIN : float = 0.25\nconst FIX_CHANCE_MAX : float = 0.5\n\n@export\nvar max_cards : int = 8\n\n@export\nvar max_tokens : int = 7\n\n@export\nvar player_max_mind : int = 100\n\n@export\nvar enemy_max_mind : int = 200\n\nvar _can_act : bool = false\n\n@onready\nvar _player_mind_value : int = player_max_mind :\n\tset(v):\n\t\t_player_mind_value = max(0, v)\n\tget:\n\t\treturn _player_mind_value\n\n@onready\nvar _enemy_mind_value : int = enemy_max_mind :\n\tset(v):\n\t\t_enemy_mind_value = max(0, v)\n\tget:\n\t\treturn _enemy_mind_value\n\nvar _tour_number : int = 0\nvar _deciding_token : RuleToken\nvar _bag_tokens_setups : Array[AbstractTokenSetup] = []\nvar _deck_card_params : Array = [] # Array of [suit, nominal]\nvar _fix_chance : float = FIX_CHANCE_MIN\n\n\nfunc _ready() -> void:\n\t%MindValueBar.set_enemy_max_mind(enemy_max_mind)\n\t%MindValueBar.set_player_max_mind(player_max_mind)\n\t\n\t\n\t%MainCamera.set_marker(%PlayerTurnCameraMarker)\n\tawait new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))\n\t_can_act = true\n\t\n\n\nfunc new_tour_async(total_cards:int, hidden_cards:int, initial_tokens:int = 3) -> void:\n\t%MainCamera.set_marker(%PlayerTurnCameraMarker)\n\t\n\t_tour_number += 1\n\t%PlayerHand.clear_cards()\n\t%PlayerHand.clear_tokens()\n\t\n\t%EnemyHand.clear_cards()\n\t%EnemyHand.clear_tokens()\n\t\n\t%PlayingTable.clear_played_cards()\n\t%PlayingTable.clear_tokens()\n\t\n\t%StaticTableSide.clear_hidden_cards()\n\t\n\tif _tour_number == 1:\n\t\tawait _show_modal_message_async(\"Кажется на столе кто-то оставил мне подсказки...\", 2.5, Color.YELLOW)\n\t\t\n\t%NewTourSound.play()\n\t\n\tawait _show_modal_message_async(\"Подготовка нового тура...\", 1.2)\n\tawait get_tree().process_frame\n\tawait get_tree().process_frame\n\t\n\t_bag_tokens_setups = []\n\tif randi() % 2 == 0:\n\t\t_bag_tokens_setups.append(HighTokenSetup.new())\n\telse:\n\t\t_bag_tokens_setups.append(LowTokenSetup.new())\n\t_bag_tokens_setups.append(RangeTokenSetup.new())\n\t_bag_tokens_setups.append(CoinflipTokenSetup.new())\n\t_bag_tokens_setups.append(FlashTokenSetup.new())\n\t\n\tif randi() % 2 == 0:\n\t\t_bag_tokens_setups.append(OvercardTokenSetup.new())\n\telse:\n\t\t_bag_tokens_setups.append(UnderdogTokenSetup.new())\n\t\t\n\t_bag_tokens_setups.append(SpoofTokenSetup.new())\n\t_bag_tokens_setups.append(SqueezTokenSetup.new())\n\t_bag_tokens_setups.append(StreetTokenSetup.new())\n\t_bag_tokens_setups.append(SuitTokenSetup.new())\n\t_bag_tokens_setups.append(VoltTokenSetup.new())\n\t_bag_tokens_setups.append(EmptyTableTokenSetup.new())\n\t_bag_tokens_setups.append(CrapTokenSetup.new())\n\t_bag_tokens_setups.append(AdjustTokenSetup.new())\n\t\n\t_deck_card_params = []\n\tfor suit:PlayableCard.Suit in [PlayableCard.Suit.Spades, PlayableCard.Suit.Hearts, \n\t\tPlayableCard.Suit.Clubs, PlayableCard.Suit.Diamonds]:\n\t\t\n\t\tfor nominal:int in range(1, 10 + 1):\n\t\t\t_deck_card_params.append([suit, nominal])\n\t\n\t%StaticTableSide.set_bag_enabled(true)\n\t\n\tfor i:int in range(initial_tokens):\n\t\tvar token : RuleToken = _create_random_token(PlayingSides.player)\n\t\tassert(token != null)\n\t\t%PlayerHand.add_token(token)\n\t\t\n\t\tvar enemy_token : RuleToken = _create_random_token(PlayingSides.enemy)\n\t\tassert(enemy_token != null)\n\t\t%EnemyHand.add_token(enemy_token)\n\t\n\tfor i:int in range(total_cards):\n\t\tvar card : PlayableCard = _create_random_card()\n\t\tcard.side = PlayingSides.player\n\t\t%PlayerHand.add_card(card)\n\t\t\n\t\tvar enemy_card : PlayableCard = _create_random_card()\n\t\tenemy_card.side = PlayingSides.enemy\n\t\t%EnemyHand.add_card(enemy_card)\n\t\n\t%MessageLabel.show()\n\t%MessageLabel.text = \"Ознакомьтесь с жетонами и выберите свою очередную скрытую карту\"\n\tfor i:int in range(hidden_cards):\n\t\tvar card : PlayableCard = await %PlayerHand.select_card_async()\n\t\t%StaticTableSide.add_hidden_card(card)\n\t\t%HiddenCardSelectingSound.play()\n\t\t\n\t\tvar enemy_card : PlayableCard = %EnemyHand.cards().pick_random()\n\t\t%StaticTableSide.add_hidden_card(enemy_card)\n\t\n\tfor card:PlayableCard in %PlayerHand.cards():\n\t\tcard.responsive = true\n\t\n\t%MessageLabel.hide()\n\t\n\tawait _show_modal_message_async(\"Да начнется тур!\\\nПожалуйста, делайте первый ход\", 1.5)\n\n\nfunc _enemy_simulate_won_cards_after_playing_card(card: PlayableCard) -> int:\n\tvar hidden_cards : Array[PlayableCard] = %StaticTableSide.hidden_cards()\n\tvar cards_pool : Array[PlayableCard] = %PlayingTable.played_cards().duplicate()\n\tvar tokens_on_cards : Dictionary[RuleToken, PlayableCard] = %PlayingTable.played_cards_tokens().duplicate()\n\tcards_pool.append(card)\n\tvar tokens : Array[RuleToken] = []\n\ttokens.append_array(%PlayingTable.played_general_tokens())\n\tfor token:RuleToken in tokens_on_cards.keys():\n\t\ttokens.append(token)\n\ttokens.append_array(%PlayingTable.played_side_tokens())\n\tvar won_cards : Array[PlayableCard] = []\n\tfor token:RuleToken in tokens:\n\t\tvar token_won_cards : Array[PlayableCard] = []\n\t\tif token.setup.type() == AbstractTokenSetup.Type.General:\n\t\t\ttoken_won_cards = token.setup.won_cards(hidden_cards, cards_pool)\n\t\telif token.setup.type() == AbstractTokenSetup.Type.Sided:\n\t\t\ttoken_won_cards = token.setup.won_cards(hidden_cards, cards_pool)\n\t\telse:\n\t\t\tif tokens_on_cards.has(token):\n\t\t\t\ttoken_won_cards = token.setup.won_cards(hidden_cards, cards_pool, tokens_on_cards[token])\n\t\t\telse:\n\t\t\t\ttoken_won_cards = token.setup.won_cards(hidden_cards, cards_pool)\n\t\tfor c:PlayableCard in token_won_cards:\n\t\t\tif not won_cards.has(c):\n\t\t\t\twon_cards.append(c)\n\tvar count : int = 0\n\tfor c:PlayableCard in won_cards:\n\t\tif c.side == PlayingSides.enemy:\n\t\t\t\tcount += 1\n\treturn count\n\n\nfunc _enemy_simulate_won_cards_after_playing_token(token: RuleToken, target_card: PlayableCard = null) -> int:\n\tvar hidden_cards : Array[PlayableCard] = %StaticTableSide.hidden_cards()\n\tvar cards_pool : Array[PlayableCard] = %PlayingTable.played_cards().duplicate()\n\tvar tokens_on_cards : Dictionary[RuleToken, PlayableCard] = %PlayingTable.played_cards_tokens().duplicate()\n\tvar tokens : Array[RuleToken] = []\n\ttokens.append_array(%PlayingTable.played_general_tokens())\n\tfor t:RuleToken in tokens_on_cards.keys():\n\t\ttokens.append(t)\n\ttokens.append_array(%PlayingTable.played_side_tokens())\n\ttokens.append(token)\n\tif token.setup.type() == AbstractTokenSetup.Type.OnCard and target_card != null:\n\t\ttokens_on_cards[token] = target_card\n\tvar won_cards : Array[PlayableCard] = []\n\tfor t:RuleToken in tokens:\n\t\tvar token_won_cards : Array[PlayableCard] = []\n\t\tif t.setup.type() == AbstractTokenSetup.Type.General:\n\t\t\ttoken_won_cards = t.setup.won_cards(hidden_cards, cards_pool)\n\t\telif t.setup.type() == AbstractTokenSetup.Type.Sided:\n\t\t\ttoken_won_cards = t.setup.won_cards(hidden_cards, cards_pool)\n\t\telse:\n\t\t\tif tokens_on_cards.has(t):\n\t\t\t\ttoken_won_cards = t.setup.won_cards(hidden_cards, cards_pool, tokens_on_cards[t])\n\t\t\telse:\n\t\t\t\ttoken_won_cards = t.setup.won_cards(hidden_cards, cards_pool)\n\t\tfor c:PlayableCard in token_won_cards:\n\t\t\tif not won_cards.has(c):\n\t\t\t\twon_cards.append(c)\n\tvar count : int = 0\n\tfor c:PlayableCard in won_cards:\n\t\tif c.side == PlayingSides.enemy:\n\t\t\t\tcount += 1\n\treturn count\n\n\nfunc _enemy_decide_best_move() -> Dictionary:\n\tvar current_won : int = _enemy_won_cards_count()\n\tvar best_gain : int = -10000\n\tvar best_action : int = 2 # default draw\n\tvar best_card : PlayableCard = null\n\tvar best_token : RuleToken = null\n\tvar best_target : PlayableCard = null\n\t\n\t# Try playing cards - predict possible counter moves\n\tfor card in %EnemyHand.cards():\n\t\tvar projected = _enemy_simulate_won_cards_after_playing_card(card)\n\t\tvar gain = projected - current_won\n\t\tvar penalty = 0\n\t\t# if we gain a lot, player might fix - be more cautious\n\t\tif gain >= 2 and _fix_chance > 0.35:\n\t\t\tpenalty = 1\n\t\telif gain >= 1 and _fix_chance > 0.45:\n\t\t\tpenalty = 1\n\t\tif gain - penalty > best_gain:\n\t\t\tbest_gain = gain - penalty\n\t\t\tbest_action = 0\n\t\t\tbest_card = card\n\t\t\tbest_token = null\n\t\t\tbest_target = null\n\t\n\t# Try playing tokens\n\tfor token in %EnemyHand.tokens():\n\t\tif token.setup.type() == AbstractTokenSetup.Type.OnCard:\n\t\t\tif _has_played_cards_without_tokens():\n\t\t\t\tfor target in %PlayingTable.played_cards():\n\t\t\t\t\tif target.token == null:\n\t\t\t\t\t\tvar projected = _enemy_simulate_won_cards_after_playing_token(token, target)\n\t\t\t\t\t\tvar gain = projected - current_won\n\t\t\t\t\t\tvar penalty = 0\n\t\t\t\t\t\tif gain >= 2 and _fix_chance > 0.35:\n\t\t\t\t\t\t\tpenalty = 1\n\t\t\t\t\t\tif gain - penalty > best_gain:\n\t\t\t\t\t\t\tbest_gain = gain - penalty\n\t\t\t\t\t\t\tbest_action = 1\n\t\t\t\t\t\t\tbest_card = null\n\t\t\t\t\t\t\tbest_token = token\n\t\t\t\t\t\t\tbest_target = target\n\t\telse:\n\t\t\tvar projected = _enemy_simulate_won_cards_after_playing_token(token)\n\t\t\tvar gain = projected - current_won\n\t\t\tvar penalty = 0\n\t\t\tif gain >= 2 and _fix_chance > 0.35:\n\t\t\t\tpenalty = 1\n\t\t\tif gain - penalty > best_gain:\n\t\t\t\tbest_gain = gain - penalty\n\t\t\t\tbest_action = 1\n\t\t\t\tbest_card = null\n\t\t\t\tbest_token = token\n\t\t\t\tbest_target = null\n\t\n\t# Consider drawing token if no good immediate plays\n\tif best_gain <= 0 and not %EnemyHand.cards().is_empty() == false and %EnemyHand.tokens().is_empty():\n\t\tbest_action = 2\n\t\n\t# If in bad position and fix chance is reasonable, consider fix\n\tif current_won == 0 and _enemy_played_cards_count() >= 1 and _fix_chance >= 0.3 and best_gain <= 0:\n\t\t# only fix if player might be ahead or we have nothing to gain\n\t\tif randf() < _fix_chance * 0.5: # be somewhat conservative\n\t\t\tbest_action = 3\n\t\n\treturn {\"action\": best_action, \"card\": best_card, \"token\": best_token, \"target_card\": best_target}\n\n\n\nfunc enemy_make_turn_async() -> void:\n\tawait get_tree().create_timer(0.5, false).timeout\n\t%MainCamera.set_marker(%EnemyReplicaCameraMarker)\n\t%KingImage.play(\"speaking\")\n\t%EnemyReplicaLabel.text = _random_enemy_replica()\n\t%KingSpeechBubble.show()\n\tawait get_tree().create_timer(1.5, false).timeout\n\t%KingImage.play(\"default\")\n\t%KingSpeechBubble.hide()\n\t%MainCamera.set_marker(%EnemyTurnCameraMarker)\n\tawait get_tree().create_timer(1.0, false).timeout\n\t\n\t#СЮДА ИИ\n\tvar won_cards_now : int = _enemy_won_cards_count()\n\t_fix_chance = FIX_CHANCE_MIN + (FIX_CHANCE_MAX - FIX_CHANCE_MIN) * (won_cards_now / float(won_cards_now + 1))\n\tfor token:RuleToken in %EnemyHand.tokens():\n\t\tprint(token.setup.description())\n\tprint(\"Враг сыграл карт на столе: %d\" % _enemy_played_cards_count())\n\tprint(\"Враг выиграл карт на столе: %d\" % _enemy_won_cards_count())\n\tprint(\"Шанс врага зафиксировать победу: %.2f\" % _fix_chance)\n\t\n\tvar move = _enemy_decide_best_move()\n\tmatch move.action:\n\t\t0: # play card\n\t\t\tif move.card != null:\n\t\t\t\t%PlayingTable.play_card(move.card)\n\t\t\t\t%CardPlaySound.play()\n\t\t\telse:\n\t\t\t\tif not %EnemyHand.cards().is_empty():\n\t\t\t\t\tvar c = %EnemyHand.cards().pick_random()\n\t\t\t\t\t%PlayingTable.play_card(c)\n\t\t\t\t\t%CardPlaySound.play()\n\t\t\t\telse:\n\t\t\t\t\tvar t2 = _create_random_token(PlayingSides.enemy)\n\t\t\t\t\tif t2 == null:\n\t\t\t\t\t\t%FixSound.play()\n\t\t\t\t\t\t%ShadingRect.show()\n\t\t\t\t\t\t%KingFixDialog.show()\n\t\t\t\t\t\t#press button code here\n\t\t\t\t\t\treturn\n\t\t\t\t\t%BagSound.play()\n\t\t\t\t\t%EnemyHand.add_token(t2)\n\t\t1: # play token\n\t\t\tvar et = move.token\n\t\t\tif et == null:\n\t\t\t\tfor t in %EnemyHand.tokens():\n\t\t\t\t\tet = t\n\t\t\t\t\tbreak\n\t\t\tif et != null and et.setup.type() == AbstractTokenSetup.Type.OnCard:\n\t\t\t\tif move.target_card != null and _has_played_cards_without_tokens():\n\t\t\t\t\t%TokenPlaySound.play()\n\t\t\t\t\t%PlayingTable.play_token(et, move.target_card)\n\t\t\t\telse:\n\t\t\t\t\tvar played_alt = false\n\t\t\t\t\tfor alt in %EnemyHand.tokens():\n\t\t\t\t\t\tif alt.setup.type() == AbstractTokenSetup.Type.OnCard:\n\t\t\t\t\t\t\tif _has_played_cards_without_tokens():\n\t\t\t\t\t\t\t\tfor pt in %PlayingTable.played_cards():\n\t\t\t\t\t\t\t\t\tif pt.token == null:\n\t\t\t\t\t\t\t\t\t\t%TokenPlaySound.play()\n\t\t\t\t\t\t\t\t\t\t%PlayingTable.play_token(alt, pt)\n\t\t\t\t\t\t\t\t\t\tplayed_alt = true\n\t\t\t\t\t\t\t\t\t\tbreak\n\t\t\t\t\t\t\tif played_alt: break\n\t\t\t\t\t\telse:\n\t\t\t\t\t\t\t%TokenPlaySound.play()\n\t\t\t\t\t\t\t%PlayingTable.play_token(alt)\n\t\t\t\t\t\t\tplayed_alt = true\n\t\t\t\t\t\t\tbreak\n\t\t\t\t\tif not played_alt:\n\t\t\t\t\t\t%ShadingRect.show()\n\t\t\t\t\t\t%KingFixDialog.show()\n\t\t\t\t\t\t%FixSound.play()\n\t\t\t\t\t\t#press button code here\n\t\t\t\t\t\treturn\n\t\t\telif et != null:\n\t\t\t\t%TokenPlaySound.play()\n\t\t\t\t%PlayingTable.play_token(et)\n\t\t\telse:\n\t\t\t\tvar dt3 = _create_random_token(PlayingSides.enemy)\n\t\t\t\tif dt3 == null:\n\t\t\t\t\t%FixSound.play()\n\t\t\t\t\t%ShadingRect.show()\n\t\t\t\t\t%KingFixDialog.show()\n\t\t\t\t\t#press button code here\n\t\t\t\t\treturn\n\t\t\t\t%BagSound.play()\n\t\t\t\t%EnemyHand.add_token(dt3)\n\t\t2: # draw token\n\t\t\tvar dt4 = _create_random_token(PlayingSides.enemy)\n\t\t\tif dt4 == null:\n\t\t\t\t%FixSound.play()\n\t\t\t\t%ShadingRect.show()\n\t\t\t\t%KingFixDialog.show()\n\t\t\t\t#press button code here\n\t\t\t\treturn\n\t\t\t%BagSound.play()\n\t\t\t%EnemyHand.add_token(dt4)\n\t\t3: # fix\n\t\t\t%ShadingRect.show()\n\t\t\t%KingFixDialog.show()\n\t\t\t%FixSound.play()\n\t\t\t#press button code here\n\t\t\treturn\n\t\n\tawait get_tree().create_timer(1.0, false).timeout\n\t%MainCamera.set_marker(%PlayerTurnCameraMarker)\n\tawait get_tree().create_timer(0.5, false).timeout\n\t_can_act = true\n\n\nfunc _enemy_played_cards_count() -> int:\n\tvar count : int = 0\n\tfor card:PlayableCard in %PlayingTable.played_cards():\n\t\tif card.side == PlayingSides.enemy:\n\t\t\tcount += 1\n\t\n\treturn count\n\n\nfunc _on_player_hand_token_play_request(token: RuleToken) -> void:\n\tif not _can_act:\n\t\treturn\n\t\n\t_can_act = false\n\t%TokenPlaySound.play()\n\tif token.setup.type() == AbstractTokenSetup.Type.OnCard:\n\t\tif not _has_played_cards_without_tokens():\n\t\t\tawait _show_modal_message_async(\"Чтобы использовать этот жетон нужны разыгранные карты без жетонов\", 1.5)\n\t\t\t_can_act = true\n\t\t\treturn\n\t\t\n\t\tvar selected_card : PlayableCard\n\t\tfor card:PlayableCard in %PlayerHand.cards():\n\t\t\tcard.responsive = false\n\t\t\n\t\tfor hand_token:RuleToken in %PlayerHand.tokens():\n\t\t\thand_token.responsive = false\n\t\t\t\n\t\twhile true:\n\t\t\t%MessageLabel.text = \"Выберите карту, на которую положить жетон\"\n\t\t\t%MessageLabel.show()\n\t\t\tselected_card = await %PlayingTable.select_card_async()\n\t\t\t%MessageLabel.hide()\n\t\t\tif selected_card.token != null:\n\t\t\t\tawait _show_modal_message_async(\"На этой карте уже есть жетон!\", 1.5)\n\t\t\t\tcontinue\n\t\t\telse:\n\t\t\t\tbreak\n\t\t\n\t\tfor hand_token:RuleToken in %PlayerHand.tokens():\n\t\t\thand_token.responsive = true\n\t\t\n\t\tfor card:PlayableCard in %PlayerHand.cards():\n\t\t\tcard.responsive = true\n\t\t\n\t\t%PlayingTable.play_token(token, selected_card)\n\telse:\n\t\t%PlayingTable.play_token(token)\n\t\n\tif _is_tour_finished():\n\t\t_can_act = false\n\t\tawait _reveal_table_async()\n\t\tawait new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))\n\t\t_can_act = true\n\telse:\n\t\tawait enemy_make_turn_async()\n\t\tif _is_tour_finished():\n\t\t\t_can_act = false\n\t\t\tawait _reveal_table_async()\n\t\t\tawait new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))\n\t\t\t_can_act = true\n\t\n\nfunc _on_fix_position_button_pressed() -> void:\n\tif _can_act:\n\t\t%FixSound.play()\n\t\t_can_act = false\n\t\tif await _is_enemy_trust_fix_async():\n\t\t\tawait _enemy_take_damage_async(_base_damage())\n\t\t\tawait new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))\n\t\t\t_can_act = true\n\t\telse:\n\t\t\tawait _reveal_table_async(PlayingSides.player)\n\t\t\tawait new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))\n\t\t_can_act = true\n\n\nfunc _on_player_hand_card_clicked(card: PlayableCard) -> void:\n\tif _can_act:\n\t\t%CardPlaySound.play()\n\t\t%PlayingTable.play_card(card)\n\t\t\n\t\t_can_act = false\n\t\t\n\t\tif _is_tour_finished():\n\t\t\t_can_act = false\n\t\t\tawait _reveal_table_async()\n\t\t\tawait new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))\n\t\t\t_can_act = true\n\t\telse:\n\t\t\tawait enemy_make_turn_async()\n\t\t\tif _is_tour_finished():\n\t\t\t\t_can_act = false\n\t\t\t\tawait _reveal_table_async()\n\t\t\t\tawait new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))\n\t\t\t\t_can_act = true\n\n\nfunc _on_static_table_side_get_token_requested() -> void:\n\tif _can_act:\n\t\tvar token : RuleToken = _create_random_token(PlayingSides.player)\n\t\tif token == null:\n\t\t\tawait _show_modal_message_async(\"Жетоны кончились!\", 1.2)\n\t\t\treturn\n\t\t\n\t\t%BagSound.play()\n\t\t\n\t\ttoken.side = PlayingSides.player\n\t\t%PlayerHand.add_token(token)\n\t\t_can_act = false\n\t\t_deciding_token = token\n\t\tif _deciding_token.setup.type() == AbstractTokenSetup.Type.OnCard and not _has_played_cards_without_tokens():\n\t\t\tawait _show_modal_message_async(\"Разрыграть взятый жетон невозможно: для этого нужны разыгранные карты без жетонов\", 1.2)\n\t\t\tawait enemy_make_turn_async()\n\t\t\tif _is_tour_finished():\n\t\t\t\t_can_act = false\n\t\t\t\tawait _reveal_table_async()\n\t\t\t\tawait new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))\n\t\t\t\t_can_act = true\n\t\telse:\n\t\t\t%TokenDialogLabel.text = \"Вы вытягиваете жетон: %s\" % token.setup.description()\n\t\t\t%ShadingRect.show()\n\t\t\t%NewTokenDialog.show()\n\n\nfunc _create_random_token_setup(side:PlayingSides) -> AbstractTokenSetup:\n\tif _bag_tokens_setups.is_empty():\n\t\treturn null\n\t\n\tvar result : AbstractTokenSetup = _bag_tokens_setups.pick_random()\n\t_bag_tokens_setups.erase(result)\n\t\n\tif _bag_tokens_setups.is_empty():\n\t\t%StaticTableSide.set_bag_enabled(false)\n\t\t\n\tif result is CoinflipTokenSetup or result is CrapTokenSetup:\n\t\tresult.even_odd = randi() % 2\n\telif result is SpoofTokenSetup or result is VoltTokenSetup or \\\n\t\t\tresult is EmptyTableTokenSetup or \\\n\t\t\tresult is OvercardTokenSetup or result is UnderdogTokenSetup:\n\t\tresult.side = side\n\t\n\treturn result\n\n\nfunc _create_random_token(side:PlayingSides) -> RuleToken:\n\tvar setup : AbstractTokenSetup = _create_random_token_setup(side)\n\tif setup == null:\n\t\treturn null\n\t\n\tvar token : RuleToken = (TOKENS.pick_random() as PackedScene).instantiate() as RuleToken\n\ttoken.side = side\n\ttoken.setup = setup\n\treturn token\n\n\nfunc _create_random_card() -> PlayableCard:\n\tvar card : PlayableCard = (CARDS.pick_random() as PackedScene).instantiate() as PlayableCard\n\t\n\tvar params : Array = _deck_card_params.pick_random()\n\t_deck_card_params.erase(params)\n\t\n\tcard.suit = params[0]\n\tcard.nominal = params[1]\n\treturn card\n\n\nfunc _collect_won_cards() -> Array[PlayableCard]:\n\tvar hidden_cards : Array[PlayableCard] = %StaticTableSide.hidden_cards()\n\tvar cards_pool : Array[PlayableCard] = %PlayingTable.played_cards()\n\tvar tokens_on_cards : Dictionary[RuleToken, PlayableCard] = %PlayingTable.played_cards_tokens()\n\t\n\tvar tokens : Array[RuleToken] = []\n\ttokens.append_array(%PlayingTable.played_general_tokens())\n\tfor token:RuleToken in tokens_on_cards.keys():\n\t\ttokens.append(token)\n\ttokens.append_array(%PlayingTable.played_side_tokens())\n\t\n\tvar won_cards : Array[PlayableCard] = []\n\tfor token:RuleToken in tokens:\n\t\tvar token_won_cards : Array[PlayableCard] = []\n\t\tif token.setup.type() == AbstractTokenSetup.Type.General:\n\t\t\ttoken_won_cards = token.setup.won_cards(hidden_cards, cards_pool)\n\t\telif token.setup.type() == AbstractTokenSetup.Type.Sided:\n\t\t\ttoken_won_cards = token.setup.won_cards(hidden_cards, cards_pool)\n\t\telse:\n\t\t\ttoken_won_cards = token.setup.won_cards(hidden_cards, cards_pool, tokens_on_cards[token])\n\t\t\n\t\tfor card:PlayableCard in token_won_cards:\n\t\t\tif not won_cards.has(card):\n\t\t\t\twon_cards.append(card)\n\t\n\treturn won_cards\n\n\nfunc _enemy_won_cards_count() -> int:\n\tvar count : int = 0\n\tfor card:PlayableCard in _collect_won_cards():\n\t\tif card.side == PlayingSides.enemy:\n\t\t\tcount += 1\n\t\n\treturn count\n\n\nfunc _reveal_table_async(initiatior:PlayingSides = null) -> void:\n\tfor card:PlayableCard in %StaticTableSide.hidden_cards():\n\t\tcard.state = PlayableCard.State.HiddenRevealed\n\t\tcard.visible_state = PlayableCard.VisibleState.Visible\n\t\n\tawait _show_modal_message_async(\"Так, посмотрим...\", 1.0)\n\tawait get_tree().create_timer(1.0, false).timeout\n\t\n\tvar won_cards : Array[PlayableCard] = _collect_won_cards()\n\t\n\tvar player_won_cards : Array[PlayableCard] = []\n\tvar enemy_won_cards : Array[PlayableCard] = []\n\tfor card:PlayableCard in won_cards:\n\t\tif card.side == PlayingSides.player:\n\t\t\tplayer_won_cards.append(card)\n\t\telif card.side == PlayingSides.enemy:\n\t\t\tenemy_won_cards.append(card)\n\t\telse:\n\t\t\tassert(false)\n\t\n\tawait _show_stats_async(len(player_won_cards), len(enemy_won_cards))\n\t\n\tvar base_damage : int = _base_damage()\n\tif initiatior == null: # Игра закончилась автоматически\n\t\tif len(player_won_cards) > len(enemy_won_cards):\n\t\t\tawait _enemy_take_damage_async(base_damage)\n\t\telif len(enemy_won_cards) > len(player_won_cards):\n\t\t\tawait _player_take_damage_async(base_damage)\n\t\telse:\n\t\t\tawait _random_take_damage_async(base_damage)\n\telif initiatior == PlayingSides.player: # Игрок зафиксировал\n\t\tif len(player_won_cards) > len(enemy_won_cards):\n\t\t\tawait _enemy_take_damage_async(base_damage * 2)\n\t\telif len(enemy_won_cards) > len(player_won_cards):\n\t\t\tawait _player_take_damage_async(base_damage * 2)\n\t\telse:\n\t\t\tawait _player_take_damage_async(base_damage)\n\telif initiatior == PlayingSides.enemy: # Враг зафиксировал\n\t\tif len(player_won_cards) > len(enemy_won_cards):\n\t\t\tawait _enemy_take_damage_async(base_damage * 2)\n\t\telif len(enemy_won_cards) > len(player_won_cards):\n\t\t\tawait _player_take_damage_async(base_damage * 2)\n\t\telse:\n\t\t\tawait _enemy_take_damage_async(base_damage)\n\telse:\n\t\tassert(false)\n\n\nfunc _player_take_damage_async(damage:int) -> void:\n\tawait _show_modal_message_async(\"Вы теряете %d рассудка!\" % damage, 1.5)\n\t_player_mind_value -= damage\n\t%MindValueBar.set_player_mind(_player_mind_value)\n\t\n\tif _player_mind_value <= 0:\n\t\t_can_act = false\n\t\t%PlayerDamageSound.play()\n\t\tawait _show_modal_message_async(\"...\", 2.0)\n\t\tget_tree().change_scene_to_packed.call_deferred(LOOSE_SCENE)\n\n\nfunc _enemy_take_damage_async(damage:int) -> void:\n\tawait _show_modal_message_async(\"Король теряет %d рассудка!\" % damage, 1.5)\n\t_enemy_mind_value -= damage\n\t%MindValueBar.set_enemy_mind(_enemy_mind_value)\n\t\n\tif _enemy_mind_value <= 0:\n\t\t_can_act = false\n\t\t%KingDamageSound.play()\n\t\tawait _show_modal_message_async(\"!!!\", 2.0)\n\t\tget_tree().change_scene_to_packed.call_deferred(WIN_SCENE)\n\n\nfunc _random_take_damage_async(damage:int) -> void:\n\tawait _show_modal_message_async(\"Подбрасываем монетку...\", 1.0)\n\t\n\tvar factor : float = randf()\n\tif factor <= 0.5:\n\t\tawait _player_take_damage_async(damage)\n\telse:\n\t\tawait _enemy_take_damage_async(damage)\n\n\nfunc _is_tour_finished() -> bool:\n\tvar cards_count : int = len(%PlayingTable.played_cards())\n\tif cards_count >= max_cards:\n\t\treturn true\n\t\n\tvar player_cards_count : int = len(%PlayerHand.cards())\n\tif player_cards_count == 0:\n\t\treturn true\n\t\n\tvar enemy_cards_count : int = len(%EnemyHand.cards())\n\tif enemy_cards_count == 0:\n\t\treturn true\n\t\n\tvar tokens_count : int = len(%PlayingTable.played_cards_tokens()) \\\n\t\t+ len(%PlayingTable.played_general_tokens()) \\\n\t\t+ len(%PlayingTable.played_side_tokens())\n\tif tokens_count >= max_tokens:\n\t\treturn true\n\t\n\treturn false\n\n\nfunc _base_damage() -> int:\n\treturn 10\n\n\nfunc _is_enemy_trust_fix_async() -> bool:\n\tawait _show_modal_message_async(\"Верю ли я тебе..?\", 1.0)\n\t\n\tvar result : bool = randf() <= 0.5\n\tif result:\n\t\tawait _show_modal_message_async(\"Пожалуй, да\")\n\telse:\n\t\tawait _show_modal_message_async(\"Пожалуй, нет\")\n\t\n\treturn result\n\n\nfunc _show_stats_async(player_won_cards:int, enemy_won_cards:int) -> void:\n\tawait _show_modal_message_async(\"Ваших победных карт: %d\\\n Победных карт Короля: %d\" % \n\t\t[player_won_cards, enemy_won_cards], 2.0)\n\n\nfunc _show_modal_message_async(message:String, time_sec:float=0.7, color:Color=Color.WHITE) -> void:\n\t%ShadingRect.show()\n\t%MessageLabel.text = message\n\t%MessageLabel.show()\n\t\n\t%MessageLabel.self_modulate = color\n\tawait get_tree().create_timer(time_sec, false).timeout\n\t\n\t%ShadingRect.hide()\n\t%MessageLabel.hide()\n\n\nfunc _random_enemy_replica() -> String:\n\treturn [\n\t\t\"Теперь мой черед!\",\n\t\t\"Моя пора действовать!\",\n\t\t\"Тут уже все ясно\",\n\t\t\"Хм...\",\n\t\t\"Так так так\",\n\t\t\"Уверен?\"].pick_random()\n\n\nfunc _tour_cards(tour:int) -> int:\n\tmatch tour:\n\t\t1, 2:\n\t\t\treturn 7\n\t\t\n\t\t3, 4:\n\t\t\treturn 8\n\t\t\n\t\t_:\n\t\t\treturn 9\n\n\nfunc _tour_hidden_cards(tour:int) -> int:\n\tmatch tour:\n\t\t1, 2:\n\t\t\treturn 2\n\t\t\n\t\t3, 4:\n\t\t\treturn 3\n\t\t\n\t\t_:\n\t\t\treturn 4\n\n\nfunc _on_play_token_button_pressed() -> void:\n\t%ButtonClickSound.play()\n\t%ShadingRect.hide()\n\t%NewTokenDialog.hide()\n\t\n\t_can_act = true\n\t_on_player_hand_token_play_request(_deciding_token)\n\n\nfunc _on_save_token_button_pressed() -> void:\n\t%ButtonClickSound.play()\n\t%ShadingRect.hide()\n\t%NewTokenDialog.hide()\n\t\n\tawait enemy_make_turn_async()\n\tif _is_tour_finished():\n\t\t_can_act = false\n\t\tawait _reveal_table_async()\n\t\tawait new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))\n\t\t_can_act = true\n\n\nfunc _has_played_cards_without_tokens() -> bool:\n\tvar played_cards : Array[PlayableCard] = %PlayingTable.played_cards()\n\tfor card:PlayableCard in played_cards:\n\t\tif card.token == null:\n\t\t\treturn true\n\t\n\treturn false\n\n\nfunc _on_turst_button_pressed() -> void:\n\t%ButtonClickSound.play()\n\t%ShadingRect.hide()\n\t%KingFixDialog.hide()\n\t\n\t_can_act = false\n\tawait _player_take_damage_async(_base_damage())\n\tawait new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))\n\t_can_act = true\n\n\nfunc _on_dont_trust_button_pressed() -> void:\n\t%ButtonClickSound.play()\n\t%ShadingRect.hide()\n\t%KingFixDialog.hide()\n\t\n\t_can_act = false\n\tawait _reveal_table_async(PlayingSides.enemy)\n\tawait new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))\n\t_can_act = true\n"
+script/source = "extends Node
+
+const UNIVERSAL_CARD = preload(\"res://src/universal_card.tscn\")
+const UNIVERSAL_TOKEN = preload(\"res://src/universal_token.tscn\")
+
+const LOOSE_SCENE = preload(\"res://src/loose_scene.tscn\")
+const WIN_SCENE = preload(\"res://src/win_scene.tscn\")
+
+const CARDS : Array[PackedScene] = [
+	preload(\"res://src/universal_card.tscn\")
+]
+
+const TOKENS : Array[PackedScene] = [
+	preload(\"res://src/universal_token.tscn\")
+]
+
+const FIX_CHANCE_MIN : float = 0.25
+const FIX_CHANCE_MAX : float = 0.5
+
+@export
+var max_cards : int = 8
+
+@export
+var max_tokens : int = 7
+
+@export
+var player_max_mind : int = 100
+
+@export
+var enemy_max_mind : int = 200
+
+var _can_act : bool = false
+
+@onready
+var _player_mind_value : int = player_max_mind :
+	set(v):
+		_player_mind_value = max(0, v)
+	get:
+		return _player_mind_value
+
+@onready
+var _enemy_mind_value : int = enemy_max_mind :
+	set(v):
+		_enemy_mind_value = max(0, v)
+	get:
+		return _enemy_mind_value
+
+var _tour_number : int = 0
+var _deciding_token : RuleToken
+var _bag_tokens_setups : Array[AbstractTokenSetup] = []
+var _deck_card_params : Array = [] # Array of [suit, nominal]
+var _fix_chance : float = FIX_CHANCE_MIN
+
+
+func _ready() -> void:
+	%MindValueBar.set_enemy_max_mind(enemy_max_mind)
+	%MindValueBar.set_player_max_mind(player_max_mind)
+	
+	
+	%MainCamera.set_marker(%PlayerTurnCameraMarker)
+	await new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))
+	_can_act = true
+	
+
+
+func new_tour_async(total_cards:int, hidden_cards:int, initial_tokens:int = 3) -> void:
+	%MainCamera.set_marker(%PlayerTurnCameraMarker)
+	
+	_tour_number += 1
+	%PlayerHand.clear_cards()
+	%PlayerHand.clear_tokens()
+	
+	%EnemyHand.clear_cards()
+	%EnemyHand.clear_tokens()
+	
+	%PlayingTable.clear_played_cards()
+	%PlayingTable.clear_tokens()
+	
+	%StaticTableSide.clear_hidden_cards()
+	
+	if _tour_number == 1:
+		await _show_modal_message_async(\"Кажется на столе кто-то оставил мне подсказки...\", 2.5, Color.YELLOW)
+		
+	%NewTourSound.play()
+	
+	await _show_modal_message_async(\"Подготовка нового тура...\", 1.2)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	
+	_bag_tokens_setups = []
+	if randi() % 2 == 0:
+		_bag_tokens_setups.append(HighTokenSetup.new())
+	else:
+		_bag_tokens_setups.append(LowTokenSetup.new())
+	_bag_tokens_setups.append(RangeTokenSetup.new())
+	_bag_tokens_setups.append(CoinflipTokenSetup.new())
+	_bag_tokens_setups.append(FlashTokenSetup.new())
+	
+	if randi() % 2 == 0:
+		_bag_tokens_setups.append(OvercardTokenSetup.new())
+	else:
+		_bag_tokens_setups.append(UnderdogTokenSetup.new())
+		
+	_bag_tokens_setups.append(SpoofTokenSetup.new())
+	_bag_tokens_setups.append(SqueezTokenSetup.new())
+	_bag_tokens_setups.append(StreetTokenSetup.new())
+	_bag_tokens_setups.append(SuitTokenSetup.new())
+	_bag_tokens_setups.append(VoltTokenSetup.new())
+	_bag_tokens_setups.append(EmptyTableTokenSetup.new())
+	_bag_tokens_setups.append(CrapTokenSetup.new())
+	_bag_tokens_setups.append(AdjustTokenSetup.new())
+	
+	_deck_card_params = []
+	for suit:PlayableCard.Suit in [PlayableCard.Suit.Spades, PlayableCard.Suit.Hearts, 
+		PlayableCard.Suit.Clubs, PlayableCard.Suit.Diamonds]:
+		
+		for nominal:int in range(1, 10 + 1):
+			_deck_card_params.append([suit, nominal])
+	
+	%StaticTableSide.set_bag_enabled(true)
+	
+	for i:int in range(initial_tokens):
+		var token : RuleToken = _create_random_token(PlayingSides.player)
+		assert(token != null)
+		%PlayerHand.add_token(token)
+		
+		var enemy_token : RuleToken = _create_random_token(PlayingSides.enemy)
+		assert(enemy_token != null)
+		%EnemyHand.add_token(enemy_token)
+	
+	for i:int in range(total_cards):
+		var card : PlayableCard = _create_random_card()
+		card.side = PlayingSides.player
+		%PlayerHand.add_card(card)
+		
+		var enemy_card : PlayableCard = _create_random_card()
+		enemy_card.side = PlayingSides.enemy
+		%EnemyHand.add_card(enemy_card)
+	
+	%MessageLabel.show()
+	%MessageLabel.text = \"Ознакомьтесь с жетонами и выберите свою очередную скрытую карту\"
+	for i:int in range(hidden_cards):
+		var card : PlayableCard = await %PlayerHand.select_card_async()
+		%StaticTableSide.add_hidden_card(card)
+		%HiddenCardSelectingSound.play()
+		
+		var enemy_card : PlayableCard = %EnemyHand.cards().pick_random()
+		%StaticTableSide.add_hidden_card(enemy_card)
+	
+	for card:PlayableCard in %PlayerHand.cards():
+		card.responsive = true
+	
+	%MessageLabel.hide()
+	
+	await _show_modal_message_async(\"Да начнется тур!\\
+Пожалуйста, делайте первый ход\", 1.5)
+
+
+func _enemy_simulate_won_cards_after_playing_card(card: PlayableCard) -> int:
+	var hidden_cards : Array[PlayableCard] = %StaticTableSide.hidden_cards()
+	var cards_pool : Array[PlayableCard] = %PlayingTable.played_cards().duplicate()
+	var tokens_on_cards : Dictionary[RuleToken, PlayableCard] = %PlayingTable.played_cards_tokens().duplicate()
+	cards_pool.append(card)
+	var tokens : Array[RuleToken] = []
+	tokens.append_array(%PlayingTable.played_general_tokens())
+	for token:RuleToken in tokens_on_cards.keys():
+		tokens.append(token)
+	tokens.append_array(%PlayingTable.played_side_tokens())
+	var won_cards : Array[PlayableCard] = []
+	for token:RuleToken in tokens:
+		var token_won_cards : Array[PlayableCard] = []
+		if token.setup.type() == AbstractTokenSetup.Type.General:
+			token_won_cards = token.setup.won_cards(hidden_cards, cards_pool)
+		elif token.setup.type() == AbstractTokenSetup.Type.Sided:
+			token_won_cards = token.setup.won_cards(hidden_cards, cards_pool)
+		else:
+			if tokens_on_cards.has(token):
+				token_won_cards = token.setup.won_cards(hidden_cards, cards_pool, tokens_on_cards[token])
+			else:
+				token_won_cards = token.setup.won_cards(hidden_cards, cards_pool)
+		for c:PlayableCard in token_won_cards:
+			if not won_cards.has(c):
+				won_cards.append(c)
+	var count : int = 0
+	for c:PlayableCard in won_cards:
+		if c.side == PlayingSides.enemy:
+				count += 1
+	return count
+
+
+func _enemy_simulate_won_cards_after_playing_token(token: RuleToken, target_card: PlayableCard = null) -> int:
+	var hidden_cards : Array[PlayableCard] = %StaticTableSide.hidden_cards()
+	var cards_pool : Array[PlayableCard] = %PlayingTable.played_cards().duplicate()
+	var tokens_on_cards : Dictionary[RuleToken, PlayableCard] = %PlayingTable.played_cards_tokens().duplicate()
+	var tokens : Array[RuleToken] = []
+	tokens.append_array(%PlayingTable.played_general_tokens())
+	for t:RuleToken in tokens_on_cards.keys():
+		tokens.append(t)
+	tokens.append_array(%PlayingTable.played_side_tokens())
+	tokens.append(token)
+	if token.setup.type() == AbstractTokenSetup.Type.OnCard and target_card != null:
+		tokens_on_cards[token] = target_card
+	var won_cards : Array[PlayableCard] = []
+	for t:RuleToken in tokens:
+		var token_won_cards : Array[PlayableCard] = []
+		if t.setup.type() == AbstractTokenSetup.Type.General:
+			token_won_cards = t.setup.won_cards(hidden_cards, cards_pool)
+		elif t.setup.type() == AbstractTokenSetup.Type.Sided:
+			token_won_cards = t.setup.won_cards(hidden_cards, cards_pool)
+		else:
+			if tokens_on_cards.has(t):
+				token_won_cards = t.setup.won_cards(hidden_cards, cards_pool, tokens_on_cards[t])
+			else:
+				token_won_cards = t.setup.won_cards(hidden_cards, cards_pool)
+		for c:PlayableCard in token_won_cards:
+			if not won_cards.has(c):
+				won_cards.append(c)
+	var count : int = 0
+	for c:PlayableCard in won_cards:
+		if c.side == PlayingSides.enemy:
+				count += 1
+	return count
+
+
+func _enemy_decide_best_move() -> Dictionary:
+	var current_won : int = _enemy_won_cards_count()
+	var best_gain : int = -10000
+	var best_action : int = 2 # default draw
+	var best_card : PlayableCard = null
+	var best_token : RuleToken = null
+	var best_target : PlayableCard = null
+	
+	# Try playing cards - predict possible counter moves
+	for card in %EnemyHand.cards():
+		var projected = _enemy_simulate_won_cards_after_playing_card(card)
+		var gain = projected - current_won
+		var penalty = 0
+		# if we gain a lot, player might fix - be more cautious
+		if gain >= 2 and _fix_chance > 0.35:
+			penalty = 1
+		elif gain >= 1 and _fix_chance > 0.45:
+			penalty = 1
+		if gain - penalty > best_gain:
+			best_gain = gain - penalty
+			best_action = 0
+			best_card = card
+			best_token = null
+			best_target = null
+	
+	# Try playing tokens
+	for token in %EnemyHand.tokens():
+		if token.setup.type() == AbstractTokenSetup.Type.OnCard:
+			if _has_played_cards_without_tokens():
+				for target in %PlayingTable.played_cards():
+					if target.token == null:
+						var projected = _enemy_simulate_won_cards_after_playing_token(token, target)
+						var gain = projected - current_won
+						var penalty = 0
+						if gain >= 2 and _fix_chance > 0.35:
+							penalty = 1
+						if gain - penalty > best_gain:
+							best_gain = gain - penalty
+							best_action = 1
+							best_card = null
+							best_token = token
+							best_target = target
+		else:
+			var projected = _enemy_simulate_won_cards_after_playing_token(token)
+			var gain = projected - current_won
+			var penalty = 0
+			if gain >= 2 and _fix_chance > 0.35:
+				penalty = 1
+			if gain - penalty > best_gain:
+				best_gain = gain - penalty
+				best_action = 1
+				best_card = null
+				best_token = token
+				best_target = null
+	
+	# Consider drawing token if no good immediate plays
+	if best_gain <= 0 and not %EnemyHand.cards().is_empty() == false and %EnemyHand.tokens().is_empty():
+		best_action = 2
+	
+	# If in bad position and fix chance is reasonable, consider fix
+	if current_won == 0 and _enemy_played_cards_count() >= 1 and _fix_chance >= 0.3 and best_gain <= 0:
+		# only fix if player might be ahead or we have nothing to gain
+		if randf() < _fix_chance * 0.5: # be somewhat conservative
+			best_action = 3
+	
+	return {\"action\": best_action, \"card\": best_card, \"token\": best_token, \"target_card\": best_target}
+
+
+
+func enemy_make_turn_async() -> void:
+	await get_tree().create_timer(0.5, false).timeout
+	%MainCamera.set_marker(%EnemyReplicaCameraMarker)
+	%KingImage.play(\"speaking\")
+	%EnemyReplicaLabel.text = _random_enemy_replica()
+	%KingSpeechBubble.show()
+	await get_tree().create_timer(1.5, false).timeout
+	%KingImage.play(\"default\")
+	%KingSpeechBubble.hide()
+	%MainCamera.set_marker(%EnemyTurnCameraMarker)
+	await get_tree().create_timer(1.0, false).timeout
+	
+	#СЮДА ИИ
+	var won_cards_now : int = _enemy_won_cards_count()
+	_fix_chance = FIX_CHANCE_MIN + (FIX_CHANCE_MAX - FIX_CHANCE_MIN) * (won_cards_now / float(won_cards_now + 1))
+	for token:RuleToken in %EnemyHand.tokens():
+		print(token.setup.description())
+	print(\"Враг сыграл карт на столе: %d\" % _enemy_played_cards_count())
+	print(\"Враг выиграл карт на столе: %d\" % _enemy_won_cards_count())
+	print(\"Шанс врага зафиксировать победу: %.2f\" % _fix_chance)
+	
+	var move = _enemy_decide_best_move()
+	match move.action:
+		0: # play card
+			if move.card != null:
+				%PlayingTable.play_card(move.card)
+				%CardPlaySound.play()
+			else:
+				if not %EnemyHand.cards().is_empty():
+					var c = %EnemyHand.cards().pick_random()
+					%PlayingTable.play_card(c)
+					%CardPlaySound.play()
+				else:
+					var t2 = _create_random_token(PlayingSides.enemy)
+					if t2 == null:
+						%FixSound.play()
+						%ShadingRect.show()
+						%KingFixDialog.show()
+						#press button code here
+						return
+					%BagSound.play()
+					%EnemyHand.add_token(t2)
+		1: # play token
+			var et = move.token
+			if et == null:
+				for t in %EnemyHand.tokens():
+					et = t
+					break
+			if et != null and et.setup.type() == AbstractTokenSetup.Type.OnCard:
+				if move.target_card != null and _has_played_cards_without_tokens():
+					%TokenPlaySound.play()
+					%PlayingTable.play_token(et, move.target_card)
+				else:
+					var played_alt = false
+					for alt in %EnemyHand.tokens():
+						if alt.setup.type() == AbstractTokenSetup.Type.OnCard:
+							if _has_played_cards_without_tokens():
+								for pt in %PlayingTable.played_cards():
+									if pt.token == null:
+										%TokenPlaySound.play()
+										%PlayingTable.play_token(alt, pt)
+										played_alt = true
+										break
+							if played_alt: break
+						else:
+							%TokenPlaySound.play()
+							%PlayingTable.play_token(alt)
+							played_alt = true
+							break
+					if not played_alt:
+						%ShadingRect.show()
+						%KingFixDialog.show()
+						%FixSound.play()
+						#press button code here
+						return
+			elif et != null:
+				%TokenPlaySound.play()
+				%PlayingTable.play_token(et)
+			else:
+				var dt3 = _create_random_token(PlayingSides.enemy)
+				if dt3 == null:
+					%FixSound.play()
+					%ShadingRect.show()
+					%KingFixDialog.show()
+					#press button code here
+					return
+				%BagSound.play()
+				%EnemyHand.add_token(dt3)
+		2: # draw token
+			var dt4 = _create_random_token(PlayingSides.enemy)
+			if dt4 == null:
+				%FixSound.play()
+				%ShadingRect.show()
+				%KingFixDialog.show()
+				#press button code here
+				return
+			%BagSound.play()
+			%EnemyHand.add_token(dt4)
+		3: # fix
+			%ShadingRect.show()
+			%KingFixDialog.show()
+			%FixSound.play()
+			#press button code here
+			return
+	
+	await get_tree().create_timer(1.0, false).timeout
+	%MainCamera.set_marker(%PlayerTurnCameraMarker)
+	await get_tree().create_timer(0.5, false).timeout
+	_can_act = true
+
+
+func _enemy_played_cards_count() -> int:
+	var count : int = 0
+	for card:PlayableCard in %PlayingTable.played_cards():
+		if card.side == PlayingSides.enemy:
+			count += 1
+	
+	return count
+
+
+func _on_player_hand_token_play_request(token: RuleToken) -> void:
+	if not _can_act:
+		return
+	
+	_can_act = false
+	%TokenPlaySound.play()
+	if token.setup.type() == AbstractTokenSetup.Type.OnCard:
+		if not _has_played_cards_without_tokens():
+			await _show_modal_message_async(\"Чтобы использовать этот жетон нужны разыгранные карты без жетонов\", 1.5)
+			_can_act = true
+			return
+		
+		var selected_card : PlayableCard
+		for card:PlayableCard in %PlayerHand.cards():
+			card.responsive = false
+		
+		for hand_token:RuleToken in %PlayerHand.tokens():
+			hand_token.responsive = false
+			
+		while true:
+			%MessageLabel.text = \"Выберите карту, на которую положить жетон\"
+			%MessageLabel.show()
+			selected_card = await %PlayingTable.select_card_async()
+			%MessageLabel.hide()
+			if selected_card.token != null:
+				await _show_modal_message_async(\"На этой карте уже есть жетон!\", 1.5)
+				continue
+			else:
+				break
+		
+		for hand_token:RuleToken in %PlayerHand.tokens():
+			hand_token.responsive = true
+		
+		for card:PlayableCard in %PlayerHand.cards():
+			card.responsive = true
+		
+		%PlayingTable.play_token(token, selected_card)
+	else:
+		%PlayingTable.play_token(token)
+	
+	if _is_tour_finished():
+		_can_act = false
+		await _reveal_table_async()
+		await new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))
+		_can_act = true
+	else:
+		await enemy_make_turn_async()
+		if _is_tour_finished():
+			_can_act = false
+			await _reveal_table_async()
+			await new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))
+			_can_act = true
+	
+
+func _on_fix_position_button_pressed() -> void:
+	if _can_act:
+		%FixSound.play()
+		_can_act = false
+		if await _is_enemy_trust_fix_async():
+			await _enemy_take_damage_async(_base_damage())
+			await new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))
+			_can_act = true
+		else:
+			await _reveal_table_async(PlayingSides.player)
+			await new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))
+		_can_act = true
+
+
+func _on_player_hand_card_clicked(card: PlayableCard) -> void:
+	if _can_act:
+		%CardPlaySound.play()
+		%PlayingTable.play_card(card)
+		
+		_can_act = false
+		
+		if _is_tour_finished():
+			_can_act = false
+			await _reveal_table_async()
+			await new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))
+			_can_act = true
+		else:
+			await enemy_make_turn_async()
+			if _is_tour_finished():
+				_can_act = false
+				await _reveal_table_async()
+				await new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))
+				_can_act = true
+
+
+func _on_static_table_side_get_token_requested() -> void:
+	if _can_act:
+		var token : RuleToken = _create_random_token(PlayingSides.player)
+		if token == null:
+			await _show_modal_message_async(\"Жетоны кончились!\", 1.2)
+			return
+		
+		%BagSound.play()
+		
+		token.side = PlayingSides.player
+		%PlayerHand.add_token(token)
+		_can_act = false
+		_deciding_token = token
+		if _deciding_token.setup.type() == AbstractTokenSetup.Type.OnCard and not _has_played_cards_without_tokens():
+			await _show_modal_message_async(\"Разрыграть взятый жетон невозможно: для этого нужны разыгранные карты без жетонов\", 1.2)
+			await enemy_make_turn_async()
+			if _is_tour_finished():
+				_can_act = false
+				await _reveal_table_async()
+				await new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))
+				_can_act = true
+		else:
+			%TokenDialogLabel.text = \"Вы вытягиваете жетон: %s\" % token.setup.description()
+			%ShadingRect.show()
+			%NewTokenDialog.show()
+
+
+func _create_random_token_setup(side:PlayingSides) -> AbstractTokenSetup:
+	if _bag_tokens_setups.is_empty():
+		return null
+	
+	var result : AbstractTokenSetup = _bag_tokens_setups.pick_random()
+	_bag_tokens_setups.erase(result)
+	
+	if _bag_tokens_setups.is_empty():
+		%StaticTableSide.set_bag_enabled(false)
+		
+	if result is CoinflipTokenSetup or result is FlashTokenSetup:
+		result.even_odd = randi() % 2
+	elif result is SpoofTokenSetup or result is VoltTokenSetup or \\
+			result is EmptyTableTokenSetup or \\
+			result is OvercardTokenSetup or result is UnderdogTokenSetup:
+		result.side = side
+	
+	return result
+
+
+func _create_random_token(side:PlayingSides) -> RuleToken:
+	var setup : AbstractTokenSetup = _create_random_token_setup(side)
+	if setup == null:
+		return null
+	
+	var token : RuleToken = (TOKENS.pick_random() as PackedScene).instantiate() as RuleToken
+	token.side = side
+	token.setup = setup
+	return token
+
+
+func _create_random_card() -> PlayableCard:
+	var card : PlayableCard = (CARDS.pick_random() as PackedScene).instantiate() as PlayableCard
+	
+	var params : Array = _deck_card_params.pick_random()
+	_deck_card_params.erase(params)
+	
+	card.suit = params[0]
+	card.nominal = params[1]
+	return card
+
+
+func _collect_won_cards() -> Array[PlayableCard]:
+	var hidden_cards : Array[PlayableCard] = %StaticTableSide.hidden_cards()
+	var cards_pool : Array[PlayableCard] = %PlayingTable.played_cards()
+	var tokens_on_cards : Dictionary[RuleToken, PlayableCard] = %PlayingTable.played_cards_tokens()
+	
+	var tokens : Array[RuleToken] = []
+	tokens.append_array(%PlayingTable.played_general_tokens())
+	for token:RuleToken in tokens_on_cards.keys():
+		tokens.append(token)
+	tokens.append_array(%PlayingTable.played_side_tokens())
+	
+	var won_cards : Array[PlayableCard] = []
+	for token:RuleToken in tokens:
+		var token_won_cards : Array[PlayableCard] = []
+		if token.setup.type() == AbstractTokenSetup.Type.General:
+			token_won_cards = token.setup.won_cards(hidden_cards, cards_pool)
+		elif token.setup.type() == AbstractTokenSetup.Type.Sided:
+			token_won_cards = token.setup.won_cards(hidden_cards, cards_pool)
+		else:
+			token_won_cards = token.setup.won_cards(hidden_cards, cards_pool, tokens_on_cards[token])
+		
+		for card:PlayableCard in token_won_cards:
+			if not won_cards.has(card):
+				won_cards.append(card)
+	
+	return won_cards
+
+
+func _enemy_won_cards_count() -> int:
+	var count : int = 0
+	for card:PlayableCard in _collect_won_cards():
+		if card.side == PlayingSides.enemy:
+			count += 1
+	
+	return count
+
+
+func _reveal_table_async(initiatior:PlayingSides = null) -> void:
+	for card:PlayableCard in %StaticTableSide.hidden_cards():
+		card.state = PlayableCard.State.HiddenRevealed
+		card.visible_state = PlayableCard.VisibleState.Visible
+	
+	await _show_modal_message_async(\"Так, посмотрим...\", 1.0)
+	await get_tree().create_timer(1.0, false).timeout
+	
+	var won_cards : Array[PlayableCard] = _collect_won_cards()
+	
+	var player_won_cards : Array[PlayableCard] = []
+	var enemy_won_cards : Array[PlayableCard] = []
+	for card:PlayableCard in won_cards:
+		if card.side == PlayingSides.player:
+			player_won_cards.append(card)
+		elif card.side == PlayingSides.enemy:
+			enemy_won_cards.append(card)
+		else:
+			assert(false)
+	
+	await _show_stats_async(len(player_won_cards), len(enemy_won_cards))
+	
+	var base_damage : int = _base_damage()
+	if initiatior == null: # Игра закончилась автоматически
+		if len(player_won_cards) > len(enemy_won_cards):
+			await _enemy_take_damage_async(base_damage)
+		elif len(enemy_won_cards) > len(player_won_cards):
+			await _player_take_damage_async(base_damage)
+		else:
+			await _random_take_damage_async(base_damage)
+	elif initiatior == PlayingSides.player: # Игрок зафиксировал
+		if len(player_won_cards) > len(enemy_won_cards):
+			await _enemy_take_damage_async(base_damage * 2)
+		elif len(enemy_won_cards) > len(player_won_cards):
+			await _player_take_damage_async(base_damage * 2)
+		else:
+			await _player_take_damage_async(base_damage)
+	elif initiatior == PlayingSides.enemy: # Враг зафиксировал
+		if len(player_won_cards) > len(enemy_won_cards):
+			await _enemy_take_damage_async(base_damage * 2)
+		elif len(enemy_won_cards) > len(player_won_cards):
+			await _player_take_damage_async(base_damage * 2)
+		else:
+			await _enemy_take_damage_async(base_damage)
+	else:
+		assert(false)
+
+
+func _player_take_damage_async(damage:int) -> void:
+	await _show_modal_message_async(\"Вы теряете %d рассудка!\" % damage, 1.5)
+	_player_mind_value -= damage
+	%MindValueBar.set_player_mind(_player_mind_value)
+	
+	if _player_mind_value <= 0:
+		_can_act = false
+		%PlayerDamageSound.play()
+		await _show_modal_message_async(\"...\", 2.0)
+		get_tree().change_scene_to_packed.call_deferred(LOOSE_SCENE)
+
+
+func _enemy_take_damage_async(damage:int) -> void:
+	await _show_modal_message_async(\"Король теряет %d рассудка!\" % damage, 1.5)
+	_enemy_mind_value -= damage
+	%MindValueBar.set_enemy_mind(_enemy_mind_value)
+	
+	if _enemy_mind_value <= 0:
+		_can_act = false
+		%KingDamageSound.play()
+		await _show_modal_message_async(\"!!!\", 2.0)
+		get_tree().change_scene_to_packed.call_deferred(WIN_SCENE)
+
+
+func _random_take_damage_async(damage:int) -> void:
+	await _show_modal_message_async(\"Подбрасываем монетку...\", 1.0)
+	
+	var factor : float = randf()
+	if factor <= 0.5:
+		await _player_take_damage_async(damage)
+	else:
+		await _enemy_take_damage_async(damage)
+
+
+func _is_tour_finished() -> bool:
+	var cards_count : int = len(%PlayingTable.played_cards())
+	if cards_count >= max_cards:
+		return true
+	
+	var player_cards_count : int = len(%PlayerHand.cards())
+	if player_cards_count == 0:
+		return true
+	
+	var enemy_cards_count : int = len(%EnemyHand.cards())
+	if enemy_cards_count == 0:
+		return true
+	
+	var tokens_count : int = len(%PlayingTable.played_cards_tokens()) \\
+		+ len(%PlayingTable.played_general_tokens()) \\
+		+ len(%PlayingTable.played_side_tokens())
+	if tokens_count >= max_tokens:
+		return true
+	
+	return false
+
+
+func _base_damage() -> int:
+	return 10
+
+
+func _is_enemy_trust_fix_async() -> bool:
+	await _show_modal_message_async(\"Верю ли я тебе..?\", 1.0)
+	
+	var result : bool = randf() <= 0.5
+	if result:
+		await _show_modal_message_async(\"Пожалуй, да\")
+	else:
+		await _show_modal_message_async(\"Пожалуй, нет\")
+	
+	return result
+
+
+func _show_stats_async(player_won_cards:int, enemy_won_cards:int) -> void:
+	await _show_modal_message_async(\"Ваших победных карт: %d\\
+ Победных карт Короля: %d\" % 
+		[player_won_cards, enemy_won_cards], 2.0)
+
+
+func _show_modal_message_async(message:String, time_sec:float=0.7, color:Color=Color.WHITE) -> void:
+	%ShadingRect.show()
+	%MessageLabel.text = message
+	%MessageLabel.show()
+	
+	%MessageLabel.self_modulate = color
+	await get_tree().create_timer(time_sec, false).timeout
+	
+	%ShadingRect.hide()
+	%MessageLabel.hide()
+
+
+func _random_enemy_replica() -> String:
+	return [
+		\"Теперь мой черед!\",
+		\"Моя пора действовать!\",
+		\"Тут уже все ясно\",
+		\"Хм...\",
+		\"Так так так\",
+		\"Уверен?\"].pick_random()
+
+
+func _tour_cards(tour:int) -> int:
+	match tour:
+		1, 2:
+			return 7
+		
+		3, 4:
+			return 8
+		
+		_:
+			return 9
+
+
+func _tour_hidden_cards(tour:int) -> int:
+	match tour:
+		1, 2:
+			return 2
+		
+		3, 4:
+			return 3
+		
+		_:
+			return 4
+
+
+func _on_play_token_button_pressed() -> void:
+	%ButtonClickSound.play()
+	%ShadingRect.hide()
+	%NewTokenDialog.hide()
+	
+	_can_act = true
+	_on_player_hand_token_play_request(_deciding_token)
+
+
+func _on_save_token_button_pressed() -> void:
+	%ButtonClickSound.play()
+	%ShadingRect.hide()
+	%NewTokenDialog.hide()
+	
+	await enemy_make_turn_async()
+	if _is_tour_finished():
+		_can_act = false
+		await _reveal_table_async()
+		await new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))
+		_can_act = true
+
+
+func _has_played_cards_without_tokens() -> bool:
+	var played_cards : Array[PlayableCard] = %PlayingTable.played_cards()
+	for card:PlayableCard in played_cards:
+		if card.token == null:
+			return true
+	
+	return false
+
+
+func _on_turst_button_pressed() -> void:
+	%ButtonClickSound.play()
+	%ShadingRect.hide()
+	%KingFixDialog.hide()
+	
+	_can_act = false
+	await _player_take_damage_async(_base_damage())
+	await new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))
+	_can_act = true
+
+
+func _on_dont_trust_button_pressed() -> void:
+	%ButtonClickSound.play()
+	%ShadingRect.hide()
+	%KingFixDialog.hide()
+	
+	_can_act = false
+	await _reveal_table_async(PlayingSides.enemy)
+	await new_tour_async(_tour_cards(_tour_number + 1), _tour_hidden_cards(_tour_number + 1))
+	_can_act = true
+"
 
 [sub_resource type="GDScript" id="GDScript_70ma3"]
 resource_name = "camera"
@@ -398,17 +1229,17 @@ script = SubResource("GDScript_70ma3")
 
 [node name="PlayerTurnCameraMarker" type="Marker2D" parent="." unique_id=364386975]
 unique_name_in_owner = true
-position = Vector2(640, 826)
+position = Vector2(640, 86.5)
 script = SubResource("GDScript_wds08")
 
 [node name="EnemyTurnCameraMarker" type="Marker2D" parent="." unique_id=2076528890]
 unique_name_in_owner = true
-position = Vector2(640, -106)
+position = Vector2(640, 86.5)
 script = SubResource("GDScript_qf1w8")
 
 [node name="EnemyReplicaCameraMarker" type="Marker2D" parent="." unique_id=531442382]
 unique_name_in_owner = true
-position = Vector2(640, -228)
+position = Vector2(640, 511.5)
 script = SubResource("GDScript_leyvj")
 
 [node name="MessageLayer" type="CanvasLayer" parent="." unique_id=1667078888]

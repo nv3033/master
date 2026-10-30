@@ -12,21 +12,22 @@ func won_cards(hidden_cards:Array[PlayableCard], cards_pool:Array[PlayableCard],
 	assert(side != null)
 	
 	var result : Array[PlayableCard] = []
-	for card:PlayableCard in hidden_cards:
-		if card.side != side:
-			continue
-		
-		var greather : bool = true
-		var was_side_crad : bool = false
-		for second_card:PlayableCard in cards_pool:
-			if second_card.side != side:
-				was_side_crad = true
-				if second_card.nominal >= card.nominal:
-					greather = false
-					break
-		
-		if greather and was_side_crad:
-			result.append(card)
+	if len(cards_pool) >= 3:
+		for card:PlayableCard in hidden_cards:
+			if card.side != side:
+				continue
+			
+			var greather : bool = true
+			var was_side_crad : bool = false
+			for second_card:PlayableCard in cards_pool:
+				if second_card.side != side:
+					was_side_crad = true
+					if second_card.nominal >= card.nominal:
+						greather = false
+						break
+			
+			if greather and was_side_crad:
+				result.append(card)
 	
 	return result
 
@@ -40,4 +41,4 @@ func image() -> Texture:
 
 
 func description() -> String:
-	return "Оверкарта. Если скрытая карта владельца жетона по номиналу старше всех открытых\nкарт противника — она выигрывает."
+	return "Оверкарта. Если на столе лежат хотя бы 3 карты и скрытая карта владельца жетона по номиналу старше всех открытых\nкарт противника — она выигрывает."

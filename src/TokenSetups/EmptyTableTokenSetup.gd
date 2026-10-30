@@ -20,23 +20,24 @@ func won_cards(hidden_cards:Array[PlayableCard], cards_pool:Array[PlayableCard],
 			opponent_card.append(card)
 	
 	var result : Array[PlayableCard] = []
-	for card:PlayableCard in hidden_cards:
-		if card.side != side:
-			continue
-		
-		var some_cards : Array = yours_card + [card]
-		var good : bool = true
-		for op_card:PlayableCard in opponent_card:
-			for sm_card:PlayableCard in some_cards:
-				if op_card.nominal == sm_card.nominal:
+	if len(yours_card) >= 2 and len(opponent_card) >= 2:
+		for card:PlayableCard in hidden_cards:
+			if card.side != side:
+				continue
+			
+			var good_suits : Array[PlayableCard.Suit] = []
+			good_suits.append(card.suit)
+			for your_card:PlayableCard in yours_card:
+				good_suits.append(your_card.suit)
+			
+			var good : bool = true
+			for op_card:PlayableCard in opponent_card:
+				if op_card.suit in good_suits:
 					good = false
 					break
 			
-			if not good:
-				break
-		
-		if good:
-			result.append(card)
+			if good:
+				result.append(card)
 	
 	return result
 
@@ -50,5 +51,5 @@ func image() -> Texture:
 
 
 func description() -> String:
-	return "Пустой стол. Если среди карт владельца жетона и скрытой\n" \
-		+ "карты нет ни одного номинала карт противника, то она выигрывает."
+	return "Пустой стол. Если на столе лежат хотя бы по 2 карты с каждой стороны\n" \
+	+ "и среди твоих карт и данной скрытой карты нет ни одного номинала карт противника, то она выигрывает."
